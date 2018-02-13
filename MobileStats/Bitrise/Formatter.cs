@@ -58,7 +58,7 @@ namespace MobileStats.Bitrise
             StringBuilder builder, List<string> cells,
             List<int> rowWidths, List<TextAlignMode> rowAlignments)
         {
-            foreach (var (content, index) in cells.Select((c, i) => (c, i)))
+            foreach (var (content, index) in cells.Select((c, i) => (content: c, index: i)))
             {
                 builder.Append("| ");
 
