@@ -20,7 +20,7 @@ namespace MobileStats
             var bitriseReport = getBitriseStats(bitriseApiToken, bitriseApps).GetAwaiter().GetResult();
 
             Console.WriteLine($"Putting statistics into: ${outVariable}");
-            Environment.SetEnvironmentVariable(outVariable, bitriseReport);
+            Environment.SetEnvironmentVariable(outVariable, bitriseReport, EnvironmentVariableTarget.Machine);
         }
 
         private static async Task<string> getBitriseStats(string apiToken, string[] apps)
