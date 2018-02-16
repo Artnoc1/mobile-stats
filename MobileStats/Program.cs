@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using MobileStats.Bitrise;
 
@@ -9,7 +10,7 @@ namespace MobileStats
         private const string bitriseApiTokenVariable = "TOGGL_BITRISE_STATISTICS_API_TOKEN";
         private const string bitriseAppSlugsVariable = "TOGGL_BITRISE_APP_SLUGS";
 
-        private const string outVariable = "TOGGL_STATISTICS_PLAIN_TEXT";
+        private const string outFile = "stats.txt";
 
         public static void Main(string[] args)
         {
@@ -19,8 +20,11 @@ namespace MobileStats
 
             var bitriseReport = getBitriseStats(bitriseApiToken, bitriseApps).GetAwaiter().GetResult();
 
-            Console.WriteLine($"Putting statistics into: ${outVariable}");
-            Environment.SetEnvironmentVariable(outVariable, bitriseReport, EnvironmentVariableTarget.Machine);
+            var outPath = Path.Combine(Directory.GetCurrentDirectory(), outFile);
+
+            Console.WriteLine($"Putting statistics into: ${outPath}");
+
+            File.WriteAllText(outPath, bitriseReport);
         }
 
         private static async Task<string> getBitriseStats(string apiToken, string[] apps)
