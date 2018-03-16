@@ -4,6 +4,7 @@ namespace MobileStats.Bitrise.Models
 {
     class Build
     {
+        public string Slug { get; set; }
         public string Branch { get; set; }
         public BuildStatus Status { get; set; }
         public DateTimeOffset? FinishedAt { get; set; }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
 using MobileStats.Bitrise;
@@ -10,7 +12,9 @@ namespace MobileStats
         private const string bitriseApiTokenVariable = "TOGGL_BITRISE_STATISTICS_API_TOKEN";
         private const string bitriseAppSlugsVariable = "TOGGL_BITRISE_APP_SLUGS";
 
-        private const string outFile = "stats.txt";
+        private const string outDir = "output";
+        private const string outStats = "stats.txt";
+        private const string outImage = "bitrise-build-graph.png";
 
         public static void Main(string[] args)
         {
@@ -20,14 +24,22 @@ namespace MobileStats
 
             var bitriseReport = getBitriseStats(bitriseApiToken, bitriseApps).GetAwaiter().GetResult();
 
-            var outPath = Path.Combine(Directory.GetCurrentDirectory(), outFile);
+            var outPath = Path.Combine(Directory.GetCurrentDirectory(), outDir);
 
-            Console.WriteLine($"Putting statistics into: ${outPath}");
+            Directory.CreateDirectory(outPath);
 
-            File.WriteAllText(outPath, bitriseReport);
+            writeFile("statistics", outPath, outStats, path => File.WriteAllText(path, bitriseReport.text));
+            writeFile("build graph", outPath, outImage, path => bitriseReport.buildGraph.Save(path, ImageFormat.Png));
         }
 
-        private static async Task<string> getBitriseStats(string apiToken, string[] apps)
+        private static void writeFile(string name, string basePath, string fileName, Action<string> writeToPath)
+        {
+            var path = Path.Combine(basePath, fileName);
+            Console.WriteLine($"Putting {name} into: {path}");
+            writeToPath(path);
+        }
+
+        private static async Task<(string text, Bitmap buildGraph)> getBitriseStats(string apiToken, string[] apps)
         {
             Console.WriteLine("Fetching bitrise builds...");
             var stats = await new Statistics(apiToken, apps).GetStatistics();
@@ -38,7 +50,9 @@ namespace MobileStats
             Console.WriteLine("Compiled Bitrise statistics:");
             Console.WriteLine(output);
 
-            return output;
+            var buildGraph = new BuildGraphPainter().Draw(stats);
+
+            return (output, buildGraph);
         }
     }
 }

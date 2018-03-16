@@ -10,6 +10,8 @@ namespace MobileStats.Bitrise
         public string Name { get; }
         public int TotalDays { get; }
 
+        public List<Build> Builds { get; }
+
         public BuildCollectionStatistics TotalStats { get; }
         public BuildCollectionStatistics LastDayStats { get; }
 
@@ -18,6 +20,8 @@ namespace MobileStats.Bitrise
         {
             Name = name;
             TotalDays = totalDays;
+
+            Builds = builds;
 
             var oneDayAgo = now - TimeSpan.FromDays(1);
 
