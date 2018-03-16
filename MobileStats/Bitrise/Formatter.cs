@@ -85,21 +85,16 @@ namespace MobileStats.Bitrise
             => new List<(string title, Func<BuildCollectionStatistics, object> value)>
             {
                 (":.", builds => builds.TotalCount),
-                ("▶️", builds => builds.StartedCount),
-                ("‖", builds => builds.AbortedCount),
-                ("✗", builds => builds.FailedCount),
-                ("✓", builds => builds.SuccessfulCount),
-                ("run μ", builds => formatMinutesSeconds(builds.SuccessfulWorkingDurationAverage)),
-                ("σ", builds => formatMinutesSeconds(builds.SuccessfulWorkingDurationSTD)),
-                ("wait μ", builds => formatMinutesSeconds(builds.PendingDurationAverage)),
-                ("σ", builds => formatMinutesSeconds(builds.PendingDurationSTD)),
-                ("50%", builds => formatMinutesSeconds(builds.PendingDurationMedian)),
-                ("75%", builds => formatMinutesSeconds(builds.PendingDuration75Percent)),
-                ("95%", builds => formatMinutesSeconds(builds.PendingDuration95Percent)),
+                ("✓", builds => $"{100 * builds.SuccessfulCount / builds.FinishedCount}%"),
+                ("run μ", builds => formatDuration(builds.SuccessfulWorkingDurationAverage)),
+                ("σ", builds => formatDuration(builds.SuccessfulWorkingDurationSTD)),
+                ("wait μ", builds => formatDuration(builds.PendingDurationAverage)),
+                ("σ", builds => formatDuration(builds.PendingDurationSTD)),
+                ("95%", builds => formatDuration(builds.PendingDuration95Percent)),
             }.Select<(string, Func<BuildCollectionStatistics, object>), ColumnSelector>(
                 t => (t.Item1, app => t.Item2(getBuilds(app)).ToString(), Right)).ToList();
 
-        private static string formatMinutesSeconds(TimeSpan t)
+        private static string formatDuration(TimeSpan t)
             => t > TimeSpan.FromMinutes(1)
                 ? $"{t.TotalMinutes:0.0}m"
                 : $"{t.TotalSeconds:0}s";
