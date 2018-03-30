@@ -72,12 +72,24 @@
     <Reference Include="System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppCenter\Api\App.cs" />
+    <Compile Include="AppCenter\Api\AppCenter.cs" />
+    <Compile Include="AppCenter\Api\BaseApi.cs" />
+    <Compile Include="AppCenter\AppStatistics.cs" />
+    <Compile Include="AppCenter\AppVersionStatistics.cs" />
+    <Compile Include="AppCenter\Models\ActiveDeviceCounts.cs" />
+    <Compile Include="AppCenter\Models\CrashCounts.cs" />
+    <Compile Include="AppCenter\Models\CrashfreeDevicePercentages.cs" />
+    <Compile Include="AppCenter\Models\DatedCount.cs" />
+    <Compile Include="AppCenter\Models\DatedPercentage.cs" />
+    <Compile Include="AppCenter\Statistics.cs" />
     <Compile Include="Bitrise\Api\Bitrise.cs" />
     <Compile Include="Bitrise\Api\App.cs" />
     <Compile Include="Bitrise\Api\BaseApi.cs" />
@@ -110,9 +122,6 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
