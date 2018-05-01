@@ -1,4 +1,4 @@
-﻿namespace MobileStats.Bitrise
+﻿namespace MobileStats
 {
     enum TextAlignMode
     {

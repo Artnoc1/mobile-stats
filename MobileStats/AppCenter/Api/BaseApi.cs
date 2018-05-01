@@ -27,7 +27,7 @@ namespace MobileStats.AppCenter.Api
                 }
             };
 
-        protected string url(string path)
+        private string url(string path)
             => $"https://api.appcenter.ms/v0.1/{path}";
 
         protected string url(string path, params (string name, string value)[] parameters)

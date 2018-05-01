@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using MobileStats.AppCenter.Models;
 
 namespace MobileStats.AppCenter
 {
@@ -7,13 +8,13 @@ namespace MobileStats.AppCenter
     {
         public AppVersionStatistics Totals { get; }
 
-        public List<(string Version, AppVersionStatistics Statistics)> VersionStatistics { get; }
+        public List<AppVersionStatistics> VersionStatistics { get; }
 
         public AppStatistics(AppVersionStatistics totals,
-            IEnumerable<(string version, AppVersionStatistics statistics)> versionStatistics)
+            IEnumerable<AppVersionStatistics> versionStatistics)
         {
             Totals = totals;
-            VersionStatistics = versionStatistics?.ToList() ?? new List<(string, AppVersionStatistics)>();
+            VersionStatistics = versionStatistics?.ToList() ?? new List<AppVersionStatistics>();
         }
     }
 }

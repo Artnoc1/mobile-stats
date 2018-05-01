@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Runtime.Versioning;
 using MobileStats.AppCenter.Models;
 
 namespace MobileStats.AppCenter.Api
@@ -18,6 +20,9 @@ namespace MobileStats.AppCenter.Api
             this.appName = appName;
         }
 
+        public IObservable<List<VersionInfo>> Versions()
+            => RequestAndDeserialize<List<VersionInfo>>(appUrl("versions"));
+
         public StartEndVersionFilteredEndpoint<ActiveDeviceCounts> ActiveDeviceCounts =>
             startEndVersionFilteredEndpoint<ActiveDeviceCounts>("analytics/active_device_counts");
 
@@ -29,7 +34,7 @@ namespace MobileStats.AppCenter.Api
 
         private StartEndVersionFilteredEndpoint<T> startEndVersionFilteredEndpoint<T>(string path)
             => (startTime, endTime, versions) => RequestAndDeserialize<T>(
-                url($"apps/{owner}/{appName}/{path}",
+                appUrl(path,
                     ("start", formatDateTime(startTime)),
                     ("end", formatDateTime(endTime)),
                     ("versions", versionArrayToParameter(versions))
@@ -41,5 +46,8 @@ namespace MobileStats.AppCenter.Api
         private string versionArrayToParameter(string[] versions)
             => versions == null || versions.Length == 0
                 ? null : string.Join("|", versions);
+
+        private string appUrl(string path, params (string name, string value)[] parameters)
+            => url($"apps/{owner}/{appName}/{path}", parameters);
     }
 }

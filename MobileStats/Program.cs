@@ -53,7 +53,9 @@ namespace MobileStats
 
             Console.WriteLine("Preparing app center report...");
             var output = $"Daneel has *{stats.Totals.MostRecentWeeklyUsers} weekly users*"
-                         + $" and is *stable for {stats.Totals.MostRecentCrashfreePercentage * 100:0}%* of them.";
+                + $" and is *stable for {stats.Totals.MostRecentCrashfreePercentage * 100:0.00}%* of them.\n"
+                + "Yesterday's breakdown:\n"
+                + new AppCenter.Formatter().Format(stats.VersionStatistics);
 
             Console.WriteLine("Compiled app center report:");
             Console.WriteLine(output);

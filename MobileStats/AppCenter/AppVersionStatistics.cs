@@ -5,16 +5,20 @@ namespace MobileStats.AppCenter
 {
     class AppVersionStatistics
     {
+        public VersionInfo Version { get; }
         public ActiveDeviceCounts ActiveDevices { get; }
         public CrashfreeDevicePercentages CrashfreePercentages { get; }
         public CrashCounts CrashCounts { get; }
 
         public int MostRecentWeeklyUsers { get; }
+        public int MostRecentDailyUsers { get; }
         public double MostRecentCrashfreePercentage { get; }
 
-        public AppVersionStatistics(ActiveDeviceCounts activeDevices,
+        public AppVersionStatistics(VersionInfo version,
+            ActiveDeviceCounts activeDevices,
             CrashfreeDevicePercentages crashfreePercentages, CrashCounts crashCounts)
         {
+            Version = version;
             ActiveDevices = activeDevices;
             CrashfreePercentages = crashfreePercentages;
             CrashCounts = crashCounts;
@@ -22,8 +26,11 @@ namespace MobileStats.AppCenter
             MostRecentWeeklyUsers = activeDevices.Weekly
                 .OrderByDescending(dc => dc.Datetime).First().Count;
 
+            MostRecentDailyUsers = activeDevices.Daily
+                .OrderByDescending(dc => dc.Datetime).Skip(1).First().Count;
+
             MostRecentCrashfreePercentage = CrashfreePercentages.DailyPercentages
-                .OrderByDescending(dc => dc.Datetime).First().Percentage;
+                .OrderByDescending(dc => dc.Datetime).Skip(1).First().Percentage;
         }
     }
 }

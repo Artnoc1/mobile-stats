@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using static MobileStats.Bitrise.TextAlignMode;
-using ColumnSelector = System.ValueTuple<string, System.Func<MobileStats.Bitrise.AppBuildStatistics, string>, MobileStats.Bitrise.TextAlignMode>;
+using static MobileStats.TextAlignMode;
+using ColumnSelector = System.ValueTuple<string, System.Func<MobileStats.Bitrise.AppBuildStatistics, string>, MobileStats.TextAlignMode>;
 
 namespace MobileStats.Bitrise
 {

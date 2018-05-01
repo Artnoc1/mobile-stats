@@ -84,11 +84,13 @@
     <Compile Include="AppCenter\Api\BaseApi.cs" />
     <Compile Include="AppCenter\AppStatistics.cs" />
     <Compile Include="AppCenter\AppVersionStatistics.cs" />
+    <Compile Include="AppCenter\Formatter.cs" />
     <Compile Include="AppCenter\Models\ActiveDeviceCounts.cs" />
     <Compile Include="AppCenter\Models\CrashCounts.cs" />
     <Compile Include="AppCenter\Models\CrashfreeDevicePercentages.cs" />
     <Compile Include="AppCenter\Models\DatedCount.cs" />
     <Compile Include="AppCenter\Models\DatedPercentage.cs" />
+    <Compile Include="AppCenter\Models\VersionInfo.cs" />
     <Compile Include="AppCenter\Statistics.cs" />
     <Compile Include="Bitrise\Api\Bitrise.cs" />
     <Compile Include="Bitrise\Api\App.cs" />
@@ -104,9 +106,9 @@
     <Compile Include="Bitrise\Models\Page.cs" />
     <Compile Include="Bitrise\Models\BuildStatus.cs" />
     <Compile Include="Bitrise\Models\PageInfo.cs" />
-    <Compile Include="Bitrise\TextAlignMode.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="TextAlignMode.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
