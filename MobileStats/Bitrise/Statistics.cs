@@ -44,9 +44,14 @@ namespace MobileStats.Bitrise
             Console.WriteLine($"Fetched {totalBuildCount} builds in total");
             Console.WriteLine("Doing the math...");
 
-            var stats = apps.Select(a => a.Title)
-                .Zip(builds, (t, b) => (t, b))
-                .Concat(new [] { ("Total", builds.SelectMany(b => b).ToList()) })
+            var appsWithTitle = apps.Select(a => a.Title)
+                .Zip(builds, (t, b) => (t, b));
+
+            if (apps.Length > 1)
+                appsWithTitle = appsWithTitle
+                    .Concat(new[] {("Total", builds.SelectMany(b => b).ToList())});
+
+            var stats = appsWithTitle
                 .Select(b => new AppBuildStatistics(b.Item1, daysToFetch, now, b.Item2))
                 .ToList();
 
