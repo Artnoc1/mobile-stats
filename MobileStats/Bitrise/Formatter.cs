@@ -81,18 +81,23 @@ namespace MobileStats.Bitrise
         private static IEnumerable<List<string>> dataRowsFrom(List<AppBuildStatistics> apps, List<ColumnSelector> columns)
             => apps.Select(s => columns.Select(selector => selector.Item2(s)).ToList());
 
-        private static List<ColumnSelector> buildCollectionColumns(Func<AppBuildStatistics, BuildCollectionStatistics> getBuilds)
-            => new List<(string title, Func<BuildCollectionStatistics, object> value)>
+        private static IEnumerable<ColumnSelector> buildCollectionColumns(Func<AppBuildStatistics, BuildCollectionStatistics> getBuilds)
+            => new (string title, Func<BuildCollectionStatistics, object> value)[]
             {
                 (":.", builds => builds.TotalCount),
-                ("✓", builds => $"{100 * builds.SuccessfulCount / builds.FinishedCount}%"),
+                ("✓", builds => formatPercentage(builds.SuccessfulCount, builds.FinishedCount)),
                 ("run μ", builds => formatDuration(builds.SuccessfulWorkingDurationAverage)),
                 ("σ", builds => formatDuration(builds.SuccessfulWorkingDurationSTD)),
                 ("wait μ", builds => formatDuration(builds.PendingDurationAverage)),
                 ("σ", builds => formatDuration(builds.PendingDurationSTD)),
                 ("95%", builds => formatDuration(builds.PendingDuration95Percent)),
             }.Select<(string, Func<BuildCollectionStatistics, object>), ColumnSelector>(
-                t => (t.Item1, app => t.Item2(getBuilds(app)).ToString(), Right)).ToList();
+                t => (t.Item1, app => t.Item2(getBuilds(app)).ToString(), Right));
+
+        private static string formatPercentage(int count, int total)
+            => total == 0
+                ? "N/A"
+                : $"{100 * count / total}%";
 
         private static string formatDuration(TimeSpan t)
             => t > TimeSpan.FromMinutes(1)

@@ -27,6 +27,9 @@ namespace MobileStats.Bitrise
         {
             TotalCount = builds.Count;
 
+            if (TotalCount == 0)
+                return;
+
             var startedBuilds = builds
                 .Where(b => b.StartedOnWorkerAt.HasValue).ToList();
             var pendingDurations = startedBuilds
