@@ -85,6 +85,7 @@
     <Compile Include="AppCenter\AppStatistics.cs" />
     <Compile Include="AppCenter\AppVersionStatistics.cs" />
     <Compile Include="AppCenter\Formatter.cs" />
+    <Compile Include="AppCenter\KPIExtractor.cs" />
     <Compile Include="AppCenter\Models\ActiveDeviceCounts.cs" />
     <Compile Include="AppCenter\Models\CrashCounts.cs" />
     <Compile Include="AppCenter\Models\CrashfreeDevicePercentages.cs" />

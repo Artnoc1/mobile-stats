@@ -3,7 +3,10 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
+using MobileStats.AppCenter;
 using MobileStats.Bitrise;
+using Formatter = MobileStats.Bitrise.Formatter;
+using Statistics = MobileStats.Bitrise.Statistics;
 
 namespace MobileStats
 {
@@ -51,11 +54,20 @@ namespace MobileStats
             Console.WriteLine("Fetching app center statistics...");
             var stats = await new AppCenter.Statistics(apiToken, owner, app).GetStatistics();
 
+            var formatter = new AppCenter.Formatter();
+            var kpi = new KPIExtractor();
+
+            var crashFreeKpi = kpi.CrashfreeUsersOverLastFiveBuilds(stats.VersionStatistics);
+            var crashFreeKpiString = formatter.FormatPercentageWithConfidence(
+                crashFreeKpi.CrashFreePercentage,
+                crashFreeKpi.UsersConsidered
+                );
+
             Console.WriteLine("Preparing app center report...");
-            var output = $"Daneel has *{stats.Totals.MostRecentWeeklyUsers} weekly users*"
-                + $" and is *stable for {stats.Totals.MostRecentCrashfreePercentage * 100:0.00}%* of them.\n"
+            var output = $":daneel: Daneel has *{stats.Totals.MostRecentWeeklyUsers} weekly users*"
+                + $" and is *stable for {crashFreeKpiString}* of them (latest 5 versions, yesterday).\n"
                 + "Yesterday's breakdown:\n"
-                + new AppCenter.Formatter().Format(stats.VersionStatistics);
+                + formatter.Format(stats.VersionStatistics);
 
             Console.WriteLine("Compiled app center report:");
             Console.WriteLine(output);

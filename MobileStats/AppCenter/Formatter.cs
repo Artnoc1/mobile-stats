@@ -10,6 +10,9 @@ namespace MobileStats.AppCenter
 {
     class Formatter
     {
+        public string FormatPercentageWithConfidence(double percentage, int total)
+            => formatPercentageWithConfidence(percentage, total);
+
         public string Format(List<AppVersionStatistics> statistics)
         {
             return "```\n" + tabelize(statistics) + "```\n";
