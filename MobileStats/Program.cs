@@ -57,15 +57,24 @@ namespace MobileStats
             var formatter = new AppCenter.Formatter();
             var kpi = new KPIExtractor();
 
-            var crashFreeKpi = kpi.CrashfreeUsersOverLastFiveBuilds(stats.VersionStatistics);
-            var crashFreeKpiString = formatter.FormatPercentageWithConfidence(
-                crashFreeKpi.CrashFreePercentage,
-                crashFreeKpi.UsersConsidered
+            var crashFreeDailyKpi = kpi.CrashfreeUsersOverLastFiveBuildsYesterday(stats.VersionStatistics);
+            var crashFreeDailyKpiString = formatter.FormatPercentageWithConfidence(
+                crashFreeDailyKpi.CrashFreePercentage,
+                crashFreeDailyKpi.UsersConsidered
                 );
 
+            var crashFreeWeeklyKpi = kpi.CrashfreeUsersOverLastFiveBuildsLastWeek(stats.VersionStatistics);
+            var crashFreeWeeklyKpiString = formatter.FormatPercentageWithConfidence(
+                crashFreeWeeklyKpi.CrashFreePercentage,
+                crashFreeWeeklyKpi.UsersConsidered
+            );
+
             Console.WriteLine("Preparing app center report...");
-            var output = $":daneel: Daneel has *{stats.Totals.MostRecentWeeklyUsers} weekly users*"
-                + $" and is *stable for {crashFreeKpiString}* of them (latest 5 versions, yesterday).\n"
+            var output =
+                $":daneel: Daneel has *{stats.Totals.MostRecentWeeklyUsers} weekly users*"
+                + " and is stable for:\n"
+                + $"*{crashFreeDailyKpiString}* (latest 5 versions, yesterday).\n"
+                + $"*{crashFreeWeeklyKpiString}* (latest 5 versions, last 7 days).\n"
                 + "Yesterday's breakdown:\n"
                 + formatter.Format(stats.VersionStatistics);
 
