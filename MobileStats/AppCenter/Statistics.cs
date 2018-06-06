@@ -42,7 +42,7 @@ namespace MobileStats.AppCenter
 
             var totals = await getStatsFor(appApi, sevenDaysAgo, null);
 
-            return new AppStatistics(totals, versionStats);
+            return new AppStatistics(app, totals, versionStats);
         }
 
         private async Task<AppVersionStatistics> getStatsFor(App appApi, DateTimeOffset since, VersionInfo version)

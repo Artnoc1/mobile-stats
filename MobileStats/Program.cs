@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using MobileStats.AppCenter;
 using MobileStats.Bitrise;
@@ -48,35 +50,26 @@ namespace MobileStats
         {
             var apiToken = Environment.GetEnvironmentVariable(appCenterApiTokenVariable);
             var owner = Environment.GetEnvironmentVariable(appCenterOwnerVariable);
-            var app = Environment.GetEnvironmentVariable(appCenterAppsVariable);
-
-
-            Console.WriteLine("Fetching app center statistics...");
-            var stats = await new AppCenter.Statistics(apiToken, owner, app).GetStatistics();
+            var apps = Environment.GetEnvironmentVariable(appCenterAppsVariable)
+                .Split(",; ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
             var formatter = new AppCenter.Formatter();
-            var kpi = new KPIExtractor();
 
-            var crashFreeDailyKpi = kpi.CrashfreeUsersOverLastFiveBuildsYesterday(stats.VersionStatistics);
-            var crashFreeDailyKpiString = formatter.FormatPercentageWithConfidence(
-                crashFreeDailyKpi.CrashFreePercentage,
-                crashFreeDailyKpi.UsersConsidered
-                );
+            var stats = new List<AppStatistics>();
 
-            var crashFreeWeeklyKpi = kpi.CrashfreeUsersOverLastFiveBuildsLastWeek(stats.VersionStatistics);
-            var crashFreeWeeklyKpiString = formatter.FormatPercentageWithConfidence(
-                crashFreeWeeklyKpi.CrashFreePercentage,
-                crashFreeWeeklyKpi.UsersConsidered
-            );
-
+            foreach (var app in apps)
+            {
+                Console.WriteLine($"Fetching app center statistics for {app}...");
+                stats.Add(await new AppCenter.Statistics(apiToken, owner, app).GetStatistics());
+            }
             Console.WriteLine("Preparing app center report...");
-            var output =
-                $":daneel: Daneel has *{stats.Totals.MostRecentWeeklyUsers} weekly users*"
-                + " and is stable for:\n"
-                + $"*{crashFreeDailyKpiString}* (latest 5 versions, yesterday).\n"
-                + $"*{crashFreeWeeklyKpiString}* (latest 5 versions, last 7 days).\n"
-                + "Yesterday's breakdown:\n"
-                + formatter.Format(stats.VersionStatistics);
+
+            var summaryTable = formatter.FormatSummaryTable(stats);
+
+            var breakdownTables = "Yesterday's breakdowns:\n"
+                + string.Join("", stats.Select(s => $"{formatter.FormatNameWithEmoji(s)}\n{formatter.Format(s.VersionStatistics)}"));
+
+            var output = summaryTable + breakdownTables;
 
             Console.WriteLine("Compiled app center report:");
             Console.WriteLine(output);

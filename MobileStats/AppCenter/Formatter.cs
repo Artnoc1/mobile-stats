@@ -1,24 +1,84 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Policy;
 using System.Text;
 using static MobileStats.TextAlignMode;
-using ColumnSelector = System.ValueTuple<string, System.Func<MobileStats.AppCenter.AppVersionStatistics, string>, MobileStats.TextAlignMode>;
+using VersionColumnSelector = System.ValueTuple<string, System.Func<MobileStats.AppCenter.AppVersionStatistics, string>, MobileStats.TextAlignMode>;
+using AppColumnSelector = System.ValueTuple<string, System.Func<MobileStats.AppCenter.AppStatistics, string>, MobileStats.TextAlignMode>;
 
 namespace MobileStats.AppCenter
 {
     class Formatter
     {
-        public string FormatPercentageWithConfidence(double percentage, int total)
-            => formatPercentageWithConfidence(percentage, total);
+        private static readonly Dictionary<string, (string Name, string Emoji)> knownAppNames
+            = new Dictionary<string, (string, string)>
+            {
+                ["Toggl-iOS"] = ("Daneel", ":daneel:"),
+                ["Toggl-Android"] = ("Giskard", ":giskard:"),
+            };
 
+        public string FormatNameWithEmoji(AppStatistics stats)
+        {
+            if (knownAppNames.TryGetValue(stats.App, out var name))
+            {
+                return $"{name.Emoji} {name.Name}";
+            }
+
+            return stats.App;
+        }
+        public string FormatSummaryTable(List<AppStatistics> apps)
+        {
+            return "```\n" + tabelizeAppKPIs(apps) + "```\n";
+        }
         public string Format(List<AppVersionStatistics> statistics)
         {
-            return "```\n" + tabelize(statistics) + "```\n";
+            return "```\n" + tabelizeVersions(statistics) + "```\n";
         }
 
-        private static string tabelize(List<AppVersionStatistics> statistics)
+        private static string tabelizeAppKPIs(List<AppStatistics> apps)
+        {
+            var columns = appColumns();
+
+            var rows = titleRowFrom(columns).Yield()
+                .Concat(dataRowsFrom(apps, columns))
+                .ToList();
+
+            var rowWidths = Enumerable.Range(0, rows[0].Count)
+                .Select(rowNumber => rows.Max(row => row[rowNumber].Length))
+                .ToList();
+
+            var rowAlignments = columns.Select(tuple => tuple.Item3).ToList();
+
+            var builder = new StringBuilder();
+
+            foreach (var row in rows)
+                writeRow(builder, row, rowWidths, rowAlignments);
+
+            return builder.ToString();
+        }
+
+        private static List<AppColumnSelector> appColumns()
+            => new List<(string title, Func<AppStatistics, object> value, TextAlignMode alignment)>
+            {
+                ("app", formatName, Left),
+                ("w. users", stats => stats.Totals.MostRecentWeeklyUsers, Right),
+                ("stable yesterday", stats =>
+                {
+                    var kpi = new KPIExtractor().CrashfreeUsersOverLastFiveBuildsYesterday(stats.VersionStatistics);
+                    return formatPercentageWithConfidence(kpi.CrashFreePercentage, kpi.UsersConsidered);
+                }, Right),
+                ("last 7 days", stats =>
+                {
+                    var kpi = new KPIExtractor().CrashfreeUsersOverLastFiveBuildsLastWeek(stats.VersionStatistics);
+                    return formatPercentageWithConfidence(kpi.CrashFreePercentage, kpi.UsersConsidered);
+                }, Right)
+            }.Select<(string, Func<AppStatistics, object>, TextAlignMode), AppColumnSelector>(
+                t => (t.Item1, app => t.Item2(app).ToString(), t.Item3)).ToList();
+
+        private static string formatName(AppStatistics stats)
+            => knownAppNames.TryGetValue(stats.App, out var name) ? name.Name : stats.App;
+
+        private static string tabelizeVersions(List<AppVersionStatistics> statistics)
         {
             var totalUsers = statistics.Sum(s => s.MostRecentDailyUsers);
 
@@ -41,8 +101,8 @@ namespace MobileStats.AppCenter
 
             var builder = new StringBuilder();
 
-            foreach (var i in Enumerable.Range(0, shownStatistics.Count + 1))
-                writeRow(builder, rows[i], rowWidths, rowAlignments);
+            foreach (var row in rows)
+                writeRow(builder, row, rowWidths, rowAlignments);
 
             return builder.ToString();
         }
@@ -68,13 +128,13 @@ namespace MobileStats.AppCenter
             builder.AppendLine();
         }
 
-        private static List<string> titleRowFrom(List<ColumnSelector> allDaysColumns)
-            => allDaysColumns.Select(selector => selector.Item1).ToList();
+        private static List<string> titleRowFrom<T>(List<(string Title, T, TextAlignMode)> allDaysColumns)
+            => allDaysColumns.Select(selector => selector.Title).ToList();
 
-        private static IEnumerable<List<string>> dataRowsFrom(List<AppVersionStatistics> apps, List<ColumnSelector> columns)
-            => apps.Select(s => columns.Select(selector => selector.Item2(s)).ToList());
+        private static IEnumerable<List<string>> dataRowsFrom<T>(List<T> apps, List<(string, Func<T, string> SelectValue, TextAlignMode)> columns)
+            => apps.Select(s => columns.Select(selector => selector.SelectValue(s)).ToList());
 
-        private static List<ColumnSelector> versionColumns(int totalMostRecentDailyUsers)
+        private static List<VersionColumnSelector> versionColumns(int totalMostRecentDailyUsers)
             => new List<(string title, Func<AppVersionStatistics, object> value, TextAlignMode alignment)>
             {
                 ("version", stats => stats.Version.AppVersion, Left),
@@ -82,14 +142,11 @@ namespace MobileStats.AppCenter
                 ("adoption", stats => formatPercentage(stats.MostRecentDailyUsers, totalMostRecentDailyUsers), Right),
                 ("crash free", stats => formatPercentageWithConfidence(
                     stats.MostRecentCrashfreePercentage, stats.MostRecentDailyUsers), Right)
-            }.Select<(string, Func<AppVersionStatistics, object>, TextAlignMode), ColumnSelector>(
+            }.Select<(string, Func<AppVersionStatistics, object>, TextAlignMode), VersionColumnSelector>(
                 t => (t.Item1, app => t.Item2(app).ToString(), t.Item3)).ToList();
 
-        private static string formatPercentage(int count, int total)
-        {
-            var percentage = count * 100 / total;
-            return percentage == 0 ? "<1%" : $"{percentage}%";
-        }
+        public string FormatPercentageWithConfidence(double percentage, int total)
+            => formatPercentageWithConfidence(percentage, total);
 
         private static string formatPercentageWithConfidence(double percentage, int total)
         {
@@ -98,6 +155,12 @@ namespace MobileStats.AppCenter
             var deviation = z * Math.Sqrt(percentage * (1 - percentage) / total);
 
             return $"{percentage * 100:0.00}% (±{deviation * 100:0.00}%)";
+        }
+
+        private static string formatPercentage(int count, int total)
+        {
+            var percentage = count * 100 / total;
+            return percentage == 0 ? "<1%" : $"{percentage}%";
         }
     }
 }
