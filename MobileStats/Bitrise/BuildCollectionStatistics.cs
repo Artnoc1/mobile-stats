@@ -46,8 +46,6 @@ namespace MobileStats.Bitrise
             AbortedCount = builds.Count(b => b.Status == BuildStatus.Aborted);
 
             SuccessfulCount = successfulBuilds.Count;
-            SuccessfulWorkingDurationAverage = workingDurations.Average();
-            SuccessfulWorkingDurationSTD = workingDurations.StandardDeviation();
 
             if (startedBuilds.Count == 0)
                 return;
@@ -58,6 +56,13 @@ namespace MobileStats.Bitrise
             PendingDurationMedian = pendingDurations.PercentageValue(0.5);
             PendingDuration75Percent = pendingDurations.PercentageValue(0.75);
             PendingDuration95Percent = pendingDurations.PercentageValue(0.95);
+
+            if (workingDurations.Count == 0)
+                return;
+
+            SuccessfulWorkingDurationAverage = workingDurations.Average();
+            SuccessfulWorkingDurationSTD = workingDurations.StandardDeviation();
+
         }
 
     }
