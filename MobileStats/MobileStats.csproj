@@ -107,6 +107,10 @@
     <Compile Include="Bitrise\Models\Page.cs" />
     <Compile Include="Bitrise\Models\BuildStatus.cs" />
     <Compile Include="Bitrise\Models\PageInfo.cs" />
+    <Compile Include="Code\Folder.cs" />
+    <Compile Include="Code\Formatter.cs" />
+    <Compile Include="Code\Git.cs" />
+    <Compile Include="Code\Statistics.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="TextAlignMode.cs" />

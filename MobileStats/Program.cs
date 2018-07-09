@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MobileStats.AppCenter;
 using MobileStats.Bitrise;
+using MobileStats.Code;
 using Formatter = MobileStats.Bitrise.Formatter;
 using Statistics = MobileStats.Bitrise.Statistics;
 
@@ -29,13 +30,14 @@ namespace MobileStats
         {
             var appCenterReport = getAppCenterStats().GetAwaiter().GetResult();
             var bitriseReport = getBitriseStats().GetAwaiter().GetResult();
+            var codeReport = getCodeStats().GetAwaiter().GetResult();
 
             var outPath = Path.Combine(Directory.GetCurrentDirectory(), outDir);
 
             Directory.CreateDirectory(outPath);
 
             writeFile("statistics", outPath, outStats, path => File.WriteAllText(path,
-                $"{appCenterReport}\n{bitriseReport.text}"));
+                $"{appCenterReport}\n{bitriseReport.text}\n{codeReport}"));
             writeFile("build graph", outPath, outImage, path => bitriseReport.buildGraph.Save(path, ImageFormat.Png));
         }
 
@@ -96,5 +98,38 @@ namespace MobileStats
 
             return (output, buildGraph);
         }
+
+
+        private static async Task<string> getCodeStats()
+        {
+            const string repo = "git@github.com:toggl/mobileapp.git";
+            var tempPath = Path.GetTempPath() + Guid.NewGuid();
+            var repoPath = tempPath + "mobileapp";
+            new Git().Clone(repo, repoPath);
+
+            Console.WriteLine("Gathering data...");
+            var folders = new Code.Statistics(repoPath).CompileFolderStatistics();
+
+            Console.WriteLine("Cleaning up cloned repository...");
+
+            if(Directory.Exists(tempPath))
+                Directory.Delete(tempPath, true);
+
+            Console.WriteLine("Preparing code report...");
+            var formatter = new Code.Formatter();
+            var linesOfCode = formatter.FormatLinesOfCode(folders);
+            var kpis = formatter.FormatKPIs(folders);
+
+            var output =
+                $"*Code statistics*\n" +
+                $"{linesOfCode}\n" +
+                $"{kpis}";
+
+            Console.WriteLine("Compiled code report:");
+            Console.WriteLine(output);
+
+            return output;
+        }
+
     }
 }
