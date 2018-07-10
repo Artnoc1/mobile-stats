@@ -8,6 +8,8 @@ namespace MobileStats.Code
 {
     public class Formatter
     {
+        private const string locFormat = "#,###";
+
         public string FormatKPIs(List<Folder> folders)
         {
             var totalLOCs = folders.Sum(f => f.LinesOfCode);
@@ -33,11 +35,12 @@ namespace MobileStats.Code
 
             var rows = new List<string[]>
             {
-                new [] {"group", "locs", "%" },
-                new [] {"tests", testLOCs.ToString("N"), $"{formatPercentage(testLOCs, totalLOCs)} of total"},
-                new [] {"shared code", sharedCodeLOCs.ToString("N"), ""},
-                new [] {"daneel total", totalDaneelLOCs.ToString("N"), $"{formatPercentage(sharedCodeLOCs, totalDaneelLOCs)} is shared"},
-                new [] {"giskard total", totalGiskardLOCs.ToString("N"), $"{formatPercentage(sharedCodeLOCs, totalGiskardLOCs)} is shared"},
+                new [] {"group", "loc", "%" },
+                new [] {"total", totalLOCs.ToString(locFormat), "" },
+                new [] {"tests", testLOCs.ToString(locFormat), $"{formatPercentage(testLOCs, totalLOCs)} of total"},
+                new [] {"shared", sharedCodeLOCs.ToString(locFormat), ""},
+                new [] {"daneel", totalDaneelLOCs.ToString(locFormat), $"{formatPercentage(sharedCodeLOCs, totalDaneelLOCs)} is shared"},
+                new [] {"giskard", totalGiskardLOCs.ToString(locFormat), $"{formatPercentage(sharedCodeLOCs, totalGiskardLOCs)} is shared"},
             };
 
             var rowWidths = Enumerable.Range(0, rows[0].Length)
@@ -119,7 +122,7 @@ namespace MobileStats.Code
             => new List<(string title, Func<Folder, object> value, TextAlignMode alignment)>
             {
                 ("folder", f => f.Name, Left),
-                ("loc", f => f.LinesOfCode.ToString("N"), Right),
+                ("loc", f => f.LinesOfCode.ToString(locFormat), Right),
                 ("%", f => formatPercentage(f.LinesOfCode, totalLinesOfCode), Right),
             }.Select<(string, Func<Folder, object>, TextAlignMode), (string, Func<Folder, string>, TextAlignMode)>(
                 t => (t.Item1, app => t.Item2(app).ToString(), t.Item3)).ToList();
