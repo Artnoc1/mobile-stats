@@ -22,13 +22,20 @@ namespace MobileStats
         private const string appCenterOwnerVariable = "TOGGL_APPCENTER_STATISTICS_OWNER";
         private const string appCenterAppsVariable = "TOGGL_APPCENTER_STATISTICS_APPS";
 
+        private const string appFiguresUserVariable = "TOGGL_APP_FIGURES_STATISTICS_USER";
+        private const string appFiguresPasswordVariable = "TOGGL_APP_FIGURES_STATISTICS_PASSWORD";
+        private const string appFiguresClientKeyVariable = "TOGGL_APP_FIGURES_STATISTICS_CLIENT_KEY";
+        private const string appFiguresProductIdsVariable = "TOGGL_APP_FIGURES_STATISTICS_PRODUCT_IDS";
+
         private const string outDir = "output";
         private const string outStats = "stats.txt";
         private const string outImage = "bitrise-build-graph.png";
 
         public static void Main(string[] args)
         {
-            var appCenterReport = getAppCenterStats().GetAwaiter().GetResult();
+            var appFiguresData = getAppfiguresStats().GetAwaiter().GetResult();
+
+            var appCenterReport = getAppCenterStats(appFiguresData).GetAwaiter().GetResult();
             var bitriseReport = getBitriseStats().GetAwaiter().GetResult();
             var codeReport = getCodeStats().GetAwaiter().GetResult();
 
@@ -40,7 +47,6 @@ namespace MobileStats
                 $"{appCenterReport}\n{bitriseReport.text}\n{codeReport}"));
             writeFile("build graph", outPath, outImage, path => bitriseReport.buildGraph.Save(path, ImageFormat.Png));
         }
-
         private static void writeFile(string name, string basePath, string fileName, Action<string> writeToPath)
         {
             var path = Path.Combine(basePath, fileName);
@@ -48,7 +54,25 @@ namespace MobileStats
             writeToPath(path);
         }
 
-        private static async Task<string> getAppCenterStats()
+        private static async Task<List<AppFigures.AppStatistics>> getAppfiguresStats()
+        {
+            var user = Environment.GetEnvironmentVariable(appFiguresUserVariable);
+            var password = Environment.GetEnvironmentVariable(appFiguresPasswordVariable);
+            var clientKey = Environment.GetEnvironmentVariable(appFiguresClientKeyVariable);
+            var apps = Environment.GetEnvironmentVariable(appFiguresProductIdsVariable)
+                .Split(",; ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+
+            Console.WriteLine("Fetching Appfigures statistics...");
+
+            var stats = new AppFigures.Statistics(user, password, clientKey, apps);
+
+            var result = await stats.FetchStats();
+
+            return result;
+        }
+
+
+        private static async Task<string> getAppCenterStats(List<AppFigures.AppStatistics> appFiguresData)
         {
             var apiToken = Environment.GetEnvironmentVariable(appCenterApiTokenVariable);
             var owner = Environment.GetEnvironmentVariable(appCenterOwnerVariable);
@@ -66,14 +90,14 @@ namespace MobileStats
             }
             Console.WriteLine("Preparing app center report...");
 
-            var summaryTable = formatter.FormatSummaryTable(stats);
+            var summaryTable = formatter.FormatSummaryTable(stats, appFiguresData);
 
             var breakdownTables = "Yesterday's breakdowns:\n"
                 + string.Join("", stats.Select(s => $"{formatter.FormatNameWithEmoji(s)}\n{formatter.Format(s.VersionStatistics)}"));
 
             var output = summaryTable + breakdownTables;
 
-            Console.WriteLine("Compiled app center report:");
+            Console.WriteLine("Compiled summary report:");
             Console.WriteLine(output);
 
             return output;

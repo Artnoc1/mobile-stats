@@ -93,6 +93,11 @@
     <Compile Include="AppCenter\Models\DatedPercentage.cs" />
     <Compile Include="AppCenter\Models\VersionInfo.cs" />
     <Compile Include="AppCenter\Statistics.cs" />
+    <Compile Include="AppFigures\Api\AppFigures.cs" />
+    <Compile Include="AppFigures\AppStatistics.cs" />
+    <Compile Include="AppFigures\Models\Product.cs" />
+    <Compile Include="AppFigures\Models\Rating.cs" />
+    <Compile Include="AppFigures\Statistics.cs" />
     <Compile Include="Bitrise\Api\Bitrise.cs" />
     <Compile Include="Bitrise\Api\App.cs" />
     <Compile Include="Bitrise\Api\BaseApi.cs" />

@@ -4,17 +4,17 @@ using System.Linq;
 using System.Text;
 using static MobileStats.TextAlignMode;
 using VersionColumnSelector = System.ValueTuple<string, System.Func<MobileStats.AppCenter.AppVersionStatistics, string>, MobileStats.TextAlignMode>;
-using AppColumnSelector = System.ValueTuple<string, System.Func<MobileStats.AppCenter.AppStatistics, string>, MobileStats.TextAlignMode>;
+using AppColumnSelector = System.ValueTuple<string, System.Func<(MobileStats.AppCenter.AppStatistics, MobileStats.AppFigures.AppStatistics), string>, MobileStats.TextAlignMode>;
 
 namespace MobileStats.AppCenter
 {
     class Formatter
     {
-        private static readonly Dictionary<string, (string Name, string Emoji)> knownAppNames
-            = new Dictionary<string, (string, string)>
+        private static readonly Dictionary<string, (string Name, string Emoji, string AppId)> knownAppNames
+            = new Dictionary<string, (string, string, string)>
             {
-                ["Toggl-iOS"] = ("Daneel", ":daneel:"),
-                ["Toggl-Android"] = ("Giskard", ":giskard:"),
+                ["Toggl-iOS"] = ("Daneel", ":daneel:", "com.toggl.daneel"),
+                ["Toggl-Android"] = ("Giskard", ":giskard:", "com.toggl.giskard"),
             };
 
         public string FormatNameWithEmoji(AppStatistics stats)
@@ -26,21 +26,25 @@ namespace MobileStats.AppCenter
 
             return stats.App;
         }
-        public string FormatSummaryTable(List<AppStatistics> apps)
+        public string FormatSummaryTable(List<AppStatistics> apps, List<AppFigures.AppStatistics> appFiguresData)
         {
-            return "```\n" + tabelizeAppKPIs(apps) + "```\n";
+            return "```\n" + tabelizeAppKPIs(apps, appFiguresData) + "```\n";
         }
         public string Format(List<AppVersionStatistics> statistics)
         {
             return "```\n" + tabelizeVersions(statistics) + "```\n";
         }
 
-        private static string tabelizeAppKPIs(List<AppStatistics> apps)
+        private static string tabelizeAppKPIs(List<AppStatistics> apps, List<AppFigures.AppStatistics> appFiguresData)
         {
+            var combinedData = apps.Select(a =>
+                (a, appFiguresData.First(d => d.AppId == knownAppNames[a.App].AppId))
+            ).ToList();
+
             var columns = appColumns();
 
             var rows = titleRowFrom(columns).Yield()
-                .Concat(dataRowsFrom(apps, columns))
+                .Concat(dataRowsFrom(combinedData, columns))
                 .ToList();
 
             var rowWidths = Enumerable.Range(0, rows[0].Count)
@@ -58,22 +62,23 @@ namespace MobileStats.AppCenter
         }
 
         private static List<AppColumnSelector> appColumns()
-            => new List<(string title, Func<AppStatistics, object> value, TextAlignMode alignment)>
+            => new List<(string, Func<(AppStatistics AppCenter, AppFigures.AppStatistics AppFigures), object>, TextAlignMode)>
             {
-                ("app", formatName, Left),
-                ("w. users", stats => stats.Totals.MostRecentWeeklyUsers, Right),
-                ("stable yesterday", stats =>
+                ("app", stats => formatName(stats.AppCenter), Left),
+                ("w usrs", stats => stats.AppCenter.Totals.MostRecentWeeklyUsers, Right),
+                ("stable ystday", stats =>
                 {
-                    var kpi = new KPIExtractor().CrashfreeUsersOverLastFiveBuildsYesterday(stats.VersionStatistics);
+                    var kpi = new KPIExtractor().CrashfreeUsersOverLastFiveBuildsYesterday(stats.AppCenter.VersionStatistics);
                     return formatPercentageWithConfidence(kpi.CrashFreePercentage, kpi.UsersConsidered);
                 }, Right),
                 ("last 7 days", stats =>
                 {
-                    var kpi = new KPIExtractor().CrashfreeUsersOverLastFiveBuildsLastWeek(stats.VersionStatistics);
+                    var kpi = new KPIExtractor().CrashfreeUsersOverLastFiveBuildsLastWeek(stats.AppCenter.VersionStatistics);
                     return formatPercentageWithConfidence(kpi.CrashFreePercentage, kpi.UsersConsidered);
-                }, Right)
-            }.Select<(string, Func<AppStatistics, object>, TextAlignMode), AppColumnSelector>(
-                t => (t.Item1, app => t.Item2(app).ToString(), t.Item3)).ToList();
+                }, Right),
+                ("★★★", stats => stats.AppFigures.Rating.ToString("0.00"), Right)
+            }.Select<(string Title, Func<(AppStatistics, AppFigures.AppStatistics), object> GetStats, TextAlignMode TextAlign), AppColumnSelector>(
+                t => (t.Title, stats => t.GetStats(stats).ToString(), t.TextAlign)).ToList();
 
         private static string formatName(AppStatistics stats)
             => knownAppNames.TryGetValue(stats.App, out var name) ? name.Name : stats.App;
