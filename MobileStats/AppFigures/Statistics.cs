@@ -22,15 +22,24 @@ namespace MobileStats.AppFigures
 
         public async Task<List<AppStatistics>> FetchStats()
         {
+            var aMonthAgo = today - TimeSpan.FromDays(30);
+            
             var products = await api.Products();
-            var ratings = await api.Ratings(today, today);
+            
+            Console.WriteLine("Fetching numbers for apps: " + string.Join(", ", appids));
 
-            Console.WriteLine("Crunching numbers for apps: " + string.Join(", ", appids));
+            var stats = new List<AppStatistics>();
 
-            return products
-                .Select(p => new AppStatistics(p, ratings.First(r => r.Product == p.Id)))
-                .Where(s => appids.Contains(s.AppId))
-                .ToList();
+            foreach (var product in products.Where(p => appids.Contains(p.BundleIdentifier)))
+            {
+                Console.WriteLine($"Fetching {product.BundleIdentifier}..");
+                
+                var ratings = await api.Ratings(aMonthAgo, today, product.Id, new []{"US"});
+                
+                stats.Add(new AppStatistics(product, ratings));
+            }
+
+            return stats;
         }
     }
 }

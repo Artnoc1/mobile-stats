@@ -97,6 +97,7 @@
     <Compile Include="AppFigures\AppStatistics.cs" />
     <Compile Include="AppFigures\Models\Product.cs" />
     <Compile Include="AppFigures\Models\Rating.cs" />
+    <Compile Include="AppFigures\Models\RatingsReport.cs" />
     <Compile Include="AppFigures\Statistics.cs" />
     <Compile Include="Bitrise\Api\Bitrise.cs" />
     <Compile Include="Bitrise\Api\App.cs" />

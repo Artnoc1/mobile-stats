@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using MobileStats.AppFigures.Models;
+﻿using MobileStats.AppFigures.Models;
 
 namespace MobileStats.AppFigures
 {
@@ -9,15 +8,12 @@ namespace MobileStats.AppFigures
         public long Id { get; }
         public double Rating { get; }
 
-        public AppStatistics(Product product, Rating rating)
+        public AppStatistics(Product product, RatingsReport rating)
         {
             AppId = product.BundleIdentifier;
             Id = product.Id;
-
-            var stars = rating.Stars;
-            var totalRatings = Enumerable.Range(0, 5).Sum(i => stars[i]);
-            var weightedTotal = Enumerable.Range(0, 5).Sum(i => stars[i] * (i + 1));
-            Rating = weightedTotal / (double)totalRatings;
+            
+            Rating = rating.NewAverage;
         }
     }
 }

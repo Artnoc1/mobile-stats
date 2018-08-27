@@ -25,12 +25,14 @@ namespace MobileStats.AppFigures.Api
             this.clientKey = clientKey;
         }
 
-        public IObservable<List<Rating>> Ratings(DateTime startDate, DateTime endDate)
+        public IObservable<RatingsReport> Ratings(DateTime startDate, DateTime endDate, long product, string[] countries)
         {
-            return requestAndDeserialize<List<Rating>>(
-                url("ratings",
+            return requestAndDeserialize<RatingsReport>(
+                url("reports/ratings",
+                    ("products", $"{product}"),
                     ("start_date", date(startDate)),
-                    ("end_date", date(endDate))
+                    ("end_date", date(endDate)),
+                    ("countries", string.Join(",", countries))
                     ));
         }
 
@@ -68,7 +70,7 @@ namespace MobileStats.AppFigures.Api
             => parameters == null || parameters.Length == 0
                 ? url(path)
                 : url(path) + "?" + string.Join("&", parameters
-                      .Where(p => p.value != null).Select(p => $"{p.name}={HttpUtility.UrlEncode(p.value)}")
+                      .Where(p => !string.IsNullOrWhiteSpace(p.value)).Select(p => $"{p.name}={HttpUtility.UrlEncode(p.value)}")
                   );
 
         private string url(string path)
