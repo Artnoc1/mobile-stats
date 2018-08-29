@@ -76,7 +76,7 @@ namespace MobileStats.AppCenter
                     var kpi = new KPIExtractor().CrashfreeUsersOverLastFiveBuildsLastWeek(stats.AppCenter.VersionStatistics);
                     return formatPercentageWithConfidence(kpi.CrashFreePercentage, kpi.UsersConsidered);
                 }, Right),
-                ("★ total", stats => stats.AppFigures.RatingAverage.ToString("0.00"), Right),
+                ("★★★★", stats => stats.AppFigures.RatingAverage.ToString("0.00"), Right),
                 ("last 7d", stats => stats.AppFigures.RecentRatingAverage.ToString("0.00"), Right),
             }.Select<(string Title, Func<(AppStatistics, AppFigures.AppStatistics), object> GetStats, TextAlignMode TextAlign), AppColumnSelector>(
                 t => (t.Title, stats => t.GetStats(stats).ToString(), t.TextAlign)).ToList();
