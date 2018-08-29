@@ -10,27 +10,34 @@ namespace MobileStats.AppFigures
     {
         private readonly string[] appids;
         private readonly Api.AppFigures api;
-        private readonly DateTime today;
+        private readonly DateTime tomorrow;
 
         public Statistics(string userName, string password, string clientKey, params string[] appids)
         {
             this.appids = appids;
             api = new Api.AppFigures(userName, password, clientKey);
 
-            today = DateTime.UtcNow;
+            tomorrow = DateTime.UtcNow.AddHours(12);
         }
 
         public async Task<List<AppStatistics>> FetchStats()
         {
             var products = await api.Products();
-            var ratings = await api.Ratings(today, today);
+            
+            Console.WriteLine("Fetching numbers for apps: " + string.Join(", ", appids));
 
-            Console.WriteLine("Crunching numbers for apps: " + string.Join(", ", appids));
+            var stats = new List<AppStatistics>();
 
-            return products
-                .Select(p => new AppStatistics(p, ratings.First(r => r.Product == p.Id)))
-                .Where(s => appids.Contains(s.AppId))
-                .ToList();
+            foreach (var product in products.Where(p => appids.Contains(p.BundleIdentifier)))
+            {
+                Console.WriteLine($"Fetching {product.BundleIdentifier}..");
+                
+                var ratings = await api.Ratings(tomorrow - TimeSpan.FromDays(8), tomorrow, product.Id, null);
+                
+                stats.Add(new AppStatistics(product, ratings));
+            }
+
+            return stats;
         }
     }
 }
