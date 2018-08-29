@@ -32,7 +32,7 @@ namespace MobileStats.AppFigures.Api
                     ("products", $"{product}"),
                     ("start_date", date(startDate)),
                     ("end_date", date(endDate)),
-                    ("countries", string.Join(",", countries))
+                    ("countries", countries?.Length > 0 ? string.Join(",", countries) : null)
                     ));
         }
 

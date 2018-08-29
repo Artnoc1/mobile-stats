@@ -2,7 +2,7 @@
 {
     public class RatingsReport
     {
-        public long ProductId { get; set; }
+        public double Average { get; set; }
         public double NewAverage { get; set; }
     }
 }

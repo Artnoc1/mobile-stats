@@ -10,20 +10,18 @@ namespace MobileStats.AppFigures
     {
         private readonly string[] appids;
         private readonly Api.AppFigures api;
-        private readonly DateTime today;
+        private readonly DateTime tomorrow;
 
         public Statistics(string userName, string password, string clientKey, params string[] appids)
         {
             this.appids = appids;
             api = new Api.AppFigures(userName, password, clientKey);
 
-            today = DateTime.UtcNow;
+            tomorrow = DateTime.UtcNow.AddHours(12);
         }
 
         public async Task<List<AppStatistics>> FetchStats()
         {
-            var aMonthAgo = today - TimeSpan.FromDays(30);
-            
             var products = await api.Products();
             
             Console.WriteLine("Fetching numbers for apps: " + string.Join(", ", appids));
@@ -34,7 +32,7 @@ namespace MobileStats.AppFigures
             {
                 Console.WriteLine($"Fetching {product.BundleIdentifier}..");
                 
-                var ratings = await api.Ratings(aMonthAgo, today, product.Id, new []{"US"});
+                var ratings = await api.Ratings(tomorrow - TimeSpan.FromDays(8), tomorrow, product.Id, null);
                 
                 stats.Add(new AppStatistics(product, ratings));
             }

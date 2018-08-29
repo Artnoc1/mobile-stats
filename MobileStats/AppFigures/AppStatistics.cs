@@ -6,14 +6,16 @@ namespace MobileStats.AppFigures
     {
         public string AppId { get; }
         public long Id { get; }
-        public double Rating { get; }
+        public double RatingAverage { get; }
+        public double RecentRatingAverage { get; }
 
         public AppStatistics(Product product, RatingsReport rating)
         {
             AppId = product.BundleIdentifier;
             Id = product.Id;
             
-            Rating = rating.NewAverage;
+            RatingAverage = rating.Average;
+            RecentRatingAverage = rating.NewAverage;
         }
     }
 }
