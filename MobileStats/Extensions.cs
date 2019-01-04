@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace MobileStats
 {
@@ -32,6 +33,16 @@ namespace MobileStats
         public static IEnumerable<T> Yield<T>(this T item)
         {
             yield return item;
+        }
+        
+        public static IEnumerable<T> OrderAlphanumericallyDescendingBy<T>(this IEnumerable<T> source, Func<T, string> keySelector)
+        {
+            // very crude way to help sort by version number and similar strings containing numbers
+            return source.OrderByDescending(item => Regex
+                .Replace(keySelector(item),
+                    @"\d+",
+                    m => m.Value.PadLeft(50, '0')
+                ));
         }
     }
 }

@@ -90,7 +90,7 @@ namespace MobileStats.AppCenter
 
             var shownStatistics = statistics
                 .Where(s => s.MostRecentDailyUsers > 0)
-                .OrderByDescending(s => s.Version.BuildNumber)
+                .OrderAlphanumericallyDescendingBy(a => a.Version.Version)
                 .ToList();
 
             var columns = versionColumns(totalUsers);
@@ -143,7 +143,7 @@ namespace MobileStats.AppCenter
         private static List<VersionColumnSelector> versionColumns(int totalMostRecentDailyUsers)
             => new List<(string title, Func<AppVersionStatistics, object> value, TextAlignMode alignment)>
             {
-                ("version", stats => stats.Version.AppVersion, Left),
+                ("version", stats => stats.Version.Version, Left),
                 ("users", stats => stats.MostRecentDailyUsers, Right),
                 ("adoption", stats => formatPercentage(stats.MostRecentDailyUsers, totalMostRecentDailyUsers), Right),
                 ("crash free", stats => formatPercentageWithConfidence(

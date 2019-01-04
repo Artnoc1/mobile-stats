@@ -18,12 +18,21 @@ namespace MobileStats.AppCenter.Api
             this.authToken = authToken;
         }
 
-        private static readonly JsonSerializerSettings serializerSettings =
+        protected static JsonSerializerSettings SnakeCase { get; } =
             new JsonSerializerSettings
             {
                 ContractResolver = new DefaultContractResolver
                 {
                     NamingStrategy = new SnakeCaseNamingStrategy()
+                }
+            };
+        
+        protected static JsonSerializerSettings CamelCase { get; } =
+            new JsonSerializerSettings
+            {
+                ContractResolver = new DefaultContractResolver
+                {
+                    NamingStrategy = new CamelCaseNamingStrategy()
                 }
             };
 
@@ -37,13 +46,13 @@ namespace MobileStats.AppCenter.Api
                       .Where(p => p.value != null).Select(p => $"{p.name}={HttpUtility.UrlEncode(p.value)}")
                   );
 
-        protected IObservable<T> RequestAndDeserialize<T>(string url)
+        protected IObservable<T> RequestAndDeserialize<T>(string url, JsonSerializerSettings serializerSettings = null)
             => Request(url)
                 .SelectMany(r => r.Content.ReadAsStringAsync().ToObservable())
-                .Select(Deserialize<T>);
+                .Select(json => Deserialize<T>(json, serializerSettings));
 
-        protected T Deserialize<T>(string json)
-            => JsonConvert.DeserializeObject<T>(json, serializerSettings);
+        protected T Deserialize<T>(string json, JsonSerializerSettings serializerSettings = null)
+            => JsonConvert.DeserializeObject<T>(json, serializerSettings ?? SnakeCase);
 
         protected IObservable<HttpResponseMessage> Request(string url)
             => httpClient().GetAsync(url).ToObservable().Select(

@@ -31,12 +31,10 @@ namespace MobileStats.AppCenter
 
             Console.WriteLine($"Getting app center statistics for {app}...");
 
-            var versions = await appApi.Versions().ToTask();
-
+            var versions = await appApi.Versions(sevenDaysAgo).ToTask();
+            
             var versionStats = await Task.WhenAll(
-                versions
-                    .GroupBy(v => v.AppVersion)
-                    .Select(vs => vs.OrderByDescending(v => v.BuildNumber).First())
+                versions.Versions
                     .Select(async v => await getStatsFor(appApi, sevenDaysAgo, v))
                 );
 
@@ -45,19 +43,20 @@ namespace MobileStats.AppCenter
             return new AppStatistics(app, totals, versionStats);
         }
 
-        private async Task<AppVersionStatistics> getStatsFor(App appApi, DateTimeOffset since, VersionInfo version)
+        private async Task<AppVersionStatistics> getStatsFor(App appApi, DateTimeOffset since, VersionCount version)
         {
-            var friendlyVersionString = version == null ? "all versions" : $"{version.AppVersion}";
+            var friendlyVersionString = version == null ? "all versions" : $"{version.Version}";
 
-            var versions = version == null ? null : new[] {version.AppVersion};
+            var versions = version == null ? null : new[] {version.Version};
 
             Console.WriteLine($"Getting numbers for {friendlyVersionString}");
             var activeDevices = await appApi.ActiveDeviceCounts(since, versions: versions).ToTask();
             var crashfreePercentages = await appApi.CrashfreeDevicePercentages(since, versions: versions).ToTask();
-            var crashCounts = await appApi.CrashCounts(since, versions: versions).ToTask();
+            // not currently used for anything
+            //var crashCounts = await appApi.CrashCounts(since, versions: versions).ToTask();
 
             Console.WriteLine($"Crunching numbers for {friendlyVersionString}");
-            return new AppVersionStatistics(version, activeDevices, crashfreePercentages, crashCounts);
+            return new AppVersionStatistics(version, activeDevices, crashfreePercentages, null);
         }
     }
 }

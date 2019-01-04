@@ -91,7 +91,8 @@
     <Compile Include="AppCenter\Models\CrashfreeDevicePercentages.cs" />
     <Compile Include="AppCenter\Models\DatedCount.cs" />
     <Compile Include="AppCenter\Models\DatedPercentage.cs" />
-    <Compile Include="AppCenter\Models\VersionInfo.cs" />
+    <Compile Include="AppCenter\Models\VersionCount.cs" />
+    <Compile Include="AppCenter\Models\Versions.cs" />
     <Compile Include="AppCenter\Statistics.cs" />
     <Compile Include="AppFigures\Api\AppFigures.cs" />
     <Compile Include="AppFigures\AppStatistics.cs" />

@@ -5,7 +5,7 @@ namespace MobileStats.AppCenter
 {
     class AppVersionStatistics
     {
-        public VersionInfo Version { get; }
+        public VersionCount Version { get; }
         public ActiveDeviceCounts ActiveDevices { get; }
         public CrashfreeDevicePercentages CrashfreePercentages { get; }
         public CrashCounts CrashCounts { get; }
@@ -14,7 +14,7 @@ namespace MobileStats.AppCenter
         public int MostRecentDailyUsers { get; }
         public double MostRecentCrashfreePercentage { get; }
 
-        public AppVersionStatistics(VersionInfo version,
+        public AppVersionStatistics(VersionCount version,
             ActiveDeviceCounts activeDevices,
             CrashfreeDevicePercentages crashfreePercentages, CrashCounts crashCounts)
         {

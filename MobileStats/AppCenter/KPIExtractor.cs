@@ -45,7 +45,7 @@ namespace MobileStats.AppCenter
 
         private static List<AppVersionStatistics> lastFiveVersions(List<AppVersionStatistics> statistics)
             => statistics
-                .OrderByDescending(s => s.Version.BuildNumber)
+                .OrderAlphanumericallyDescendingBy(s => s.Version.Version)
                 .Take(5)
                 .ToList();
     }
