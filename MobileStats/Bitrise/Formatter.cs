@@ -3,29 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using static MobileStats.TextAlignMode;
-using ColumnSelector = System.ValueTuple<string, System.Func<MobileStats.Bitrise.AppBuildStatistics, string>, MobileStats.TextAlignMode>;
+using ColumnSelector = System.ValueTuple<string, System.Func<MobileStats.Bitrise.WorkflowBuildStatistics, string>, MobileStats.TextAlignMode>;
 
 namespace MobileStats.Bitrise
 {
     class Formatter
     {
-        public string Format(List<AppBuildStatistics> statistics)
+        public string Format(List<WorkflowBuildStatistics> statistics)
         {
             return "```\n" + tabelize(statistics) + "```\n";
         }
 
-        private static string tabelize(List<AppBuildStatistics> statistics)
+        private static string tabelize(List<WorkflowBuildStatistics> statistics)
         {
             var days = statistics[0].TotalDays;
             var initialColumn = new List<ColumnSelector>
             {
-                ("app", app => app.Name, Left),
+                ("workflow", w => w.Name, Left),
             };
             var allDaysColumns = initialColumn
-                .Concat(buildCollectionColumns(app => app.TotalStats))
+                .Concat(buildCollectionColumns(workflow => workflow.TotalStats))
                 .ToList();
             var lastDayColumns = initialColumn
-                .Concat(buildCollectionColumns(app => app.LastDayStats))
+                .Concat(buildCollectionColumns(workflow => workflow.LastDayStats))
                 .ToList();
 
             var rows = titleRowFrom(allDaysColumns).Yield()
@@ -78,10 +78,10 @@ namespace MobileStats.Bitrise
         private static List<string> titleRowFrom(List<ColumnSelector> allDaysColumns)
             => allDaysColumns.Select(selector => selector.Item1).ToList();
 
-        private static IEnumerable<List<string>> dataRowsFrom(List<AppBuildStatistics> apps, List<ColumnSelector> columns)
-            => apps.Select(s => columns.Select(selector => selector.Item2(s)).ToList());
+        private static IEnumerable<List<string>> dataRowsFrom(List<WorkflowBuildStatistics> workflows, List<ColumnSelector> columns)
+            => workflows.Select(s => columns.Select(selector => selector.Item2(s)).ToList());
 
-        private static IEnumerable<ColumnSelector> buildCollectionColumns(Func<AppBuildStatistics, BuildCollectionStatistics> getBuilds)
+        private static IEnumerable<ColumnSelector> buildCollectionColumns(Func<WorkflowBuildStatistics, BuildCollectionStatistics> getBuilds)
             => new (string title, Func<BuildCollectionStatistics, object> value)[]
             {
                 (":.", builds => builds.TotalCount),

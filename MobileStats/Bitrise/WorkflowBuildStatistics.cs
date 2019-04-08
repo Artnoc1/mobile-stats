@@ -5,7 +5,7 @@ using MobileStats.Bitrise.Models;
 
 namespace MobileStats.Bitrise
 {
-    class AppBuildStatistics
+    class WorkflowBuildStatistics
     {
         public string Name { get; }
         public int TotalDays { get; }
@@ -15,7 +15,7 @@ namespace MobileStats.Bitrise
         public BuildCollectionStatistics TotalStats { get; }
         public BuildCollectionStatistics LastDayStats { get; }
 
-        public AppBuildStatistics(string name, int totalDays,
+        public WorkflowBuildStatistics(string name, int totalDays,
             DateTimeOffset now, List<Build> builds)
         {
             Name = name;

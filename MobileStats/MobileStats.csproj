@@ -103,7 +103,7 @@
     <Compile Include="Bitrise\Api\Bitrise.cs" />
     <Compile Include="Bitrise\Api\App.cs" />
     <Compile Include="Bitrise\Api\BaseApi.cs" />
-    <Compile Include="Bitrise\AppBuildStatistics.cs" />
+    <Compile Include="Bitrise\WorkflowBuildStatistics.cs" />
     <Compile Include="Bitrise\BuildCollectionStatistics.cs" />
     <Compile Include="Bitrise\BuildGraphPainter.cs" />
     <Compile Include="Bitrise\Formatter.cs" />

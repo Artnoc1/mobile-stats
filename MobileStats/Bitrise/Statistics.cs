@@ -26,7 +26,7 @@ namespace MobileStats.Bitrise
             cutoffDate = now - TimeSpan.FromDays(daysToFetch);
         }
 
-        public async Task<List<AppBuildStatistics>> GetStatistics()
+        public async Task<List<WorkflowBuildStatistics>> GetStatistics()
         {
             Console.WriteLine("Bitrise apps: " + string.Join(", ", appIds));
 
@@ -40,19 +40,22 @@ namespace MobileStats.Bitrise
             var builds = await fetchAllBuilds(apps);
 
             var totalBuildCount = builds.Sum(list => list.Count);
-
+            
             Console.WriteLine($"Fetched {totalBuildCount} builds in total");
             Console.WriteLine("Doing the math...");
 
-            var appsWithTitle = apps.Select(a => a.Title)
-                .Zip(builds, (t, b) => (t, b));
-
-            if (apps.Length > 1)
-                appsWithTitle = appsWithTitle
-                    .Concat(new[] {("Total", builds.SelectMany(b => b).ToList())});
-
-            var stats = appsWithTitle
-                .Select(b => new AppBuildStatistics(b.Item1, daysToFetch, now, b.Item2))
+            var buildsByWorkflow = builds
+                .SelectMany(b => b)
+                .GroupBy(b => b.TriggeredWorkflow)
+                .Select(g => (Workflow: g.Key, Builds: g.ToList()))
+                .ToList();
+            
+            if (buildsByWorkflow.Count > 1)
+                buildsByWorkflow.Add(("Total", builds.SelectMany(b => b).ToList()));
+            
+            var stats = buildsByWorkflow
+                .OrderByDescending(b => b.Builds.Count)
+                .Select(b => new WorkflowBuildStatistics(b.Workflow, daysToFetch, now, b.Builds))
                 .ToList();
 
             return stats;
