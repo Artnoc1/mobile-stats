@@ -16,16 +16,16 @@ namespace MobileStats.Code
             var testLOCs = folders.Where(f => f.Name.Contains("Tests")).Sum(f => f.LinesOfCode);
 
             var daneelLOCs = folders.Single(f => f.Name == "Daneel").LinesOfCode;
-            var giskardLOCs = folders.Single(f => f.Name == "Giskard").LinesOfCode;
+            var giskardLOCs = folders.Single(f => f.Name == "Droid").LinesOfCode;
 
             var sharedCodeProjects = new HashSet<string>
             {
-                "Multivac",
-                "Ultrawave",
-                "PrimeRadiant",
-                "PrimeRadiant.Realm",
-                "Foundation",
-                "Foundation.MvvmCross",
+                "Shared",
+                "Networking",
+                "Storage",
+                "Storage.Realm",
+                "Core",
+                "Core.UI",
             };
 
             var sharedCodeLOCs = folders.Where(f => sharedCodeProjects.Contains(f.Name)).Sum(f => f.LinesOfCode);
