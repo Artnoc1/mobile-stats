@@ -15,7 +15,7 @@ namespace MobileStats.Code
             var totalLOCs = folders.Sum(f => f.LinesOfCode);
             var testLOCs = folders.Where(f => f.Name.Contains("Tests")).Sum(f => f.LinesOfCode);
 
-            var daneelLOCs = folders.Single(f => f.Name == "Daneel").LinesOfCode;
+            var daneelLOCs = folders.Single(f => f.Name == "iOS").LinesOfCode;
             var giskardLOCs = folders.Single(f => f.Name == "Droid").LinesOfCode;
 
             var sharedCodeProjects = new HashSet<string>
