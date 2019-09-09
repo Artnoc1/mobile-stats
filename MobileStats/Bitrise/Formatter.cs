@@ -19,7 +19,7 @@ namespace MobileStats.Bitrise
             var days = statistics[0].TotalDays;
             var initialColumn = new List<ColumnSelector>
             {
-                ("workflow", w => w.Name, Left),
+                ("workflow", getWorkflowName, Left),
             };
             var allDaysColumns = initialColumn
                 .Concat(buildCollectionColumns(workflow => workflow.TotalStats))
@@ -52,6 +52,37 @@ namespace MobileStats.Bitrise
                 writeRow(builder, rows[i], rowWidths, rowAlignments);
 
             return builder.ToString();
+        }
+
+        private static string getWorkflowName(WorkflowBuildStatistics w)
+        {
+            const int maxLength = 24;
+
+            if (w.Name.Length < maxLength)
+                return w.Name;
+
+            var components = w.Name.Split('.');
+            var lenghts = components.Select(c => c.Length).ToList();
+
+            var charsToRemove = w.Name.Length - maxLength;
+
+            foreach (var _ in Enumerable.Range(0, charsToRemove))
+            {
+                var currentMaxLength = lenghts.Max();
+                if (currentMaxLength == 2)
+                    break;
+                
+                var currentMaxLengthIndex = lenghts.IndexOf(currentMaxLength);
+
+                lenghts[currentMaxLengthIndex]--;
+            }
+
+            return string.Join(".",
+                components.Zip(lenghts, (c, l) =>
+                    c.Length == l
+                        ? c
+                        : $"{c.Substring(0, l - 1)}~"
+                ));
         }
 
         private static void writeRow(
