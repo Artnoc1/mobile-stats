@@ -13,8 +13,8 @@ namespace MobileStats.AppCenter
         private static readonly Dictionary<string, (string Name, string Emoji, string AppId)> knownAppNames
             = new Dictionary<string, (string, string, string)>
             {
-                ["Toggl-iOS"] = ("Daneel", ":daneel:", "com.toggl.daneel"),
-                ["Toggl-Android"] = ("Giskard", ":giskard:", "com.toggl.giskard"),
+                ["Toggl-iOS"] = ("iOS", ":daneel:", "com.toggl.daneel"),
+                ["Toggl-Android"] = ("Android", ":giskard:", "com.toggl.giskard"),
             };
 
         public string FormatNameWithEmoji(AppStatistics stats)
