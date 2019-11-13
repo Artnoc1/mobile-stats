@@ -33,11 +33,13 @@ namespace MobileStats.Bitrise
             var startedBuilds = builds
                 .Where(b => b.StartedOnWorkerAt.HasValue).ToList();
             var pendingDurations = startedBuilds
+                .Where(b => b.PendingDuration.HasValue)
                 .Select(b => b.PendingDuration.Value).ToList();
 
             var successfulBuilds = builds
                 .Where(b => b.Status == BuildStatus.Success).ToList();
             var workingDurations = successfulBuilds
+                .Where(b => b.WorkingDuration.HasValue)
                 .Select(b => b.WorkingDuration.Value).ToList();
 
             StartedCount = startedBuilds.Count;
