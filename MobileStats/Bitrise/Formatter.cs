@@ -56,7 +56,7 @@ namespace MobileStats.Bitrise
 
         private static string getWorkflowName(WorkflowBuildStatistics w)
         {
-            const int maxLength = 24;
+            const int maxLength = 20;
 
             if (w.Name.Length < maxLength)
                 return w.Name;
