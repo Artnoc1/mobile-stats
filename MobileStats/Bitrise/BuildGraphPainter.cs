@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using MobileStats.Bitrise.Models;
@@ -10,6 +11,10 @@ namespace MobileStats.Bitrise
     {
         private class CompareBuildsBySlug : IEqualityComparer<Build>
         {
+            public static CompareBuildsBySlug Instance { get; } = new CompareBuildsBySlug();
+
+            private CompareBuildsBySlug() { }
+            
             public bool Equals(Build x, Build y)
                 => x == y || (x != null && y != null && x.Slug == y.Slug);
 
@@ -22,12 +27,17 @@ namespace MobileStats.Bitrise
         private const int buildBarMargin = 6;
         private const int fontHeight = 10;
         
+        private static readonly Dictionary<string, Color> appColors =
+            new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase)
+            {
+                {"android", Color.ForestGreen},
+                {"ios", Color.SkyBlue},
+                {"mobileapp", Color.Orange},
+            };
+        
         private static readonly Dictionary<string, Color> workflowColors =
             new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase)
             {
-                {"Tests.AppBuilds.Android", Color.ForestGreen},
-                {"Tests.AppBuilds.iOS", Color.SkyBlue},
-                {"Tests.Unit.Split", Color.DarkCyan},
                 {"Tests.Integration", Color.Purple},
                 {"Tests.Integration.Notify", Color.Purple},
                 {"Tests.Integration.FromBackend.Notify", Color.Purple},
@@ -35,7 +45,8 @@ namespace MobileStats.Bitrise
                 {"Failed Build", Color.Red},
             };
 
-        private static readonly List<(Color Color, string Text)> colorLegend = workflowColors
+        private static readonly List<(Color Color, string Text)> colorLegend =
+            appColors.Concat(workflowColors)
             .GroupBy(p => p.Value)
             .Select(g => (g.Key, string.Join(", ", g.Select(p => p.Key))))
             .ToList();
@@ -45,45 +56,52 @@ namespace MobileStats.Bitrise
             Console.WriteLine("Drawing bitrise build graph..");
             var now = DateTimeOffset.UtcNow;
             var endTime = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, TimeSpan.Zero);
-            var startTime = endTime - TimeSpan.FromHours(24);
+            var startTime = endTime - TimeSpan.FromDays(7);
 
-            var allBuilds = statistics.SelectMany(workflow => workflow.Builds).Distinct(new CompareBuildsBySlug());
-            var buildsYesterday = allBuilds.Where(b =>
-                b.StartedOnWorkerAt.HasValue && b.FinishedAt.HasValue
-                && b.TriggeredAt > startTime && b.FinishedAt < endTime)
+            var allBuilds = statistics
+                .Where(workflow => workflow.App != null)
+                .SelectMany(workflow => workflow.Builds
+                    .Distinct(CompareBuildsBySlug.Instance)
+                    .Select(b => (workflow.App, Build: b))
+                );
+            var buildsLastSevenDays = allBuilds.Where(b =>
+                b.Build.StartedOnWorkerAt.HasValue && b.Build.FinishedAt.HasValue
+                && b.Build.TriggeredAt > startTime && b.Build.FinishedAt < endTime)
                 .ToList();
 
-            Console.WriteLine($"The graph has {buildsYesterday.Count} builds");
+            Console.WriteLine($"The graph has {buildsLastSevenDays.Count} builds");
 
-            var concurrencies = divideBuildsOverConcurrencies(buildsYesterday);
+            var concurrencies = divideBuildsOverConcurrencies(buildsLastSevenDays);
             Console.WriteLine($"The graph has {concurrencies.Count} concurrencies");
 
-            return drawGraph(concurrencies, startTime);
+            return drawGraph(concurrencies, startTime, endTime);
         }
 
-        private List<List<Build>> divideBuildsOverConcurrencies(IEnumerable<Build> buildsYesterday)
+        private List<List<(App App, Build Build)>> divideBuildsOverConcurrencies(IEnumerable<(App App, Build Build)> builds)
         {
-            var concurrencies = new List<List<Build>>();
+            var concurrencies = new List<List<(App App, Build Build)>>();
 
-            foreach (var build in buildsYesterday.OrderBy(b => b.StartedOnWorkerAt))
+            foreach (var (app, build) in builds.OrderBy(b => b.Build.StartedOnWorkerAt))
             {
-                var concurrencyIndex = concurrencies.FindIndex(c => c.Last().FinishedAt <= build.StartedOnWorkerAt);
+                var concurrencyIndex = concurrencies.FindIndex(c => c.Last().Build.FinishedAt <= build.StartedOnWorkerAt);
 
                 if (concurrencyIndex == -1)
                 {
-                    concurrencies.Add(new List<Build> { build });
+                    concurrencies.Add(new List<(App, Build)> { (app, build) });
                 }
                 else
                 {
-                    concurrencies[concurrencyIndex].Add(build);
+                    concurrencies[concurrencyIndex].Add((app, build));
                 }
             }
 
             return concurrencies;
         }
 
-        private Bitmap drawGraph(List<List<Build>> concurrencies, DateTimeOffset startTime)
+        private Bitmap drawGraph(List<List<(App, Build)>> concurrencies,
+            DateTimeOffset startTime, DateTimeOffset endTime)
         {
+            var graphDuration = endTime - startTime;
             var concurrencySpacing = buildBarHeight + buildBarMargin;
             var graphHeight = (concurrencies.Count + 1) * concurrencySpacing;
             var legendHeight = (int)(colorLegend.Count * fontHeight * 1.5) + fontHeight;
@@ -93,19 +111,36 @@ namespace MobileStats.Bitrise
 
             using (var graphics = Graphics.FromImage(bitmap))
             {
-                graphics.Clear(Color.Transparent);
+                graphics.Clear(Color.White);
 
-                // grid
-                var hourLinePen = new Pen(Color.LightGray);
+                // vertical grid
+                var dayLinePen = new Pen(Color.LightGray);
+                var hourLinePen = new Pen(Color.FromArgb(240, 240, 240));
                 var font = new Font(FontFamily.GenericSansSerif, fontHeight);
                 var fontBrush = new SolidBrush(Color.DimGray);
-                foreach (var hour in Enumerable.Range(1, 23))
+                var dayWidth = imageWidth / graphDuration.TotalDays;
+                var hourWidth = dayWidth / 24;
+                var dayFormat = new StringFormat { Alignment = StringAlignment.Center };
+                foreach (var day in Enumerable.Range(0, (int)graphDuration.TotalDays))
                 {
-                    var x = hour * imageWidth / 24;
-                    graphics.DrawLine(hourLinePen, x, 0, x, imageHeight - legendHeight);
-                    graphics.DrawString($"{hour}h", font, fontBrush, x, graphHeight);
+                    var x = (int)(day * dayWidth);
+                    if (day > 0)
+                        graphics.DrawLine(dayLinePen, x, 0, x, imageHeight - legendHeight);
+                    graphics.DrawString($"{startTime + TimeSpan.FromDays(day):ddd yyyy-MM-dd}",
+                        font, fontBrush, x + (int)(dayWidth * 0.5), (int)(graphHeight + fontHeight * 1.5), dayFormat);
+
+                    foreach (var hour in Enumerable.Range(1, 23))
+                    {
+                        x = (int)(day * dayWidth + hour * hourWidth);
+                        graphics.DrawLine(hourLinePen, x, 0, x, graphHeight);
+                        
+                        if (hour % 4 == 0)
+                            graphics.DrawString($"{hour}h", font, fontBrush, x, graphHeight, dayFormat);
+                    }
                 }
-                var concurrencyLinePen = new Pen(Color.Gray);
+                
+                // horizontal grid
+                var concurrencyLinePen = new Pen(Color.DarkGray);
                 foreach (var concurrency in Enumerable.Range(1, concurrencies.Count))
                 {
                     var y = graphHeight - concurrency * concurrencySpacing;
@@ -124,14 +159,14 @@ namespace MobileStats.Bitrise
                 {
                     var y = graphHeight - (concurrency + 1) * concurrencySpacing - buildBarHeight / 2;
 
-                    foreach (var build in builds)
+                    foreach (var (app, build) in builds)
                     {
-                        var buildBrush = new SolidBrush(buildColor(build));
+                        var buildBrush = new SolidBrush(buildColor(app, build));
                         
                         var timeSinceStartTime = build.StartedOnWorkerAt.Value - startTime;
-                        var x = (int)(timeSinceStartTime.TotalDays * imageWidth);
-                        var w = (int)(build.WorkingDuration.Value.TotalDays * imageWidth);
-
+                        var x = (int)(timeSinceStartTime.TotalDays / graphDuration.TotalDays * imageWidth);
+                        var w = (int)Math.Ceiling(build.WorkingDuration.Value.TotalDays / graphDuration.TotalDays * imageWidth);
+                        
                         w = Math.Max(w, 1);
 
                         graphics.FillRectangle(buildBrush, x, y, w, buildBarHeight);
@@ -160,9 +195,11 @@ namespace MobileStats.Bitrise
             return bitmap;
         }
 
-        private Color buildColor(Build build)
+        private Color buildColor(App app, Build build)
         {
-            return workflowColors.TryGetValue(build.TriggeredWorkflow, out var color) ? color : Color.DimGray;
+            return workflowColors.TryGetValue(build.TriggeredWorkflow, out var color)
+                || appColors.TryGetValue(app.Title ?? "", out color)
+                    ? color : Color.DimGray;
         }
     }
 }

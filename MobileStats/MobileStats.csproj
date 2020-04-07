@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MobileStats</RootNamespace>
     <AssemblyName>MobileStats</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <PublishUrl>publish\</PublishUrl>
@@ -28,7 +28,7 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>8</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -50,6 +50,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="mscorlib" />
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
       <HintPath>..\packages\Newtonsoft.Json.11.0.1-beta3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -69,8 +70,9 @@
     <Reference Include="System.Reactive.Linq, Version=3.0.1000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Reactive.Linq.4.0.0-preview00001\lib\net45\System.Reactive.Linq.dll</HintPath>
     </Reference>
-    <Reference Include="System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
@@ -84,7 +86,6 @@
     <Compile Include="AppCenter\Api\BaseApi.cs" />
     <Compile Include="AppCenter\AppStatistics.cs" />
     <Compile Include="AppCenter\AppVersionStatistics.cs" />
-    <Compile Include="AppCenter\Formatter.cs" />
     <Compile Include="AppCenter\KPIExtractor.cs" />
     <Compile Include="AppCenter\Models\ActiveDeviceCounts.cs" />
     <Compile Include="AppCenter\Models\CrashCounts.cs" />
@@ -94,6 +95,7 @@
     <Compile Include="AppCenter\Models\VersionCount.cs" />
     <Compile Include="AppCenter\Models\Versions.cs" />
     <Compile Include="AppCenter\Statistics.cs" />
+    <Compile Include="AppCenter\StatisticsGatherer.cs" />
     <Compile Include="AppFigures\Api\AppFigures.cs" />
     <Compile Include="AppFigures\AppStatistics.cs" />
     <Compile Include="AppFigures\Models\Product.cs" />
@@ -103,10 +105,10 @@
     <Compile Include="Bitrise\Api\Bitrise.cs" />
     <Compile Include="Bitrise\Api\App.cs" />
     <Compile Include="Bitrise\Api\BaseApi.cs" />
+    <Compile Include="Bitrise\AppNames.cs" />
     <Compile Include="Bitrise\WorkflowBuildStatistics.cs" />
     <Compile Include="Bitrise\BuildCollectionStatistics.cs" />
     <Compile Include="Bitrise\BuildGraphPainter.cs" />
-    <Compile Include="Bitrise\Formatter.cs" />
     <Compile Include="Bitrise\Models\App.cs" />
     <Compile Include="Bitrise\Models\Single.cs" />
     <Compile Include="Bitrise\Statistics.cs" />
@@ -114,11 +116,16 @@
     <Compile Include="Bitrise\Models\Page.cs" />
     <Compile Include="Bitrise\Models\BuildStatus.cs" />
     <Compile Include="Bitrise\Models\PageInfo.cs" />
-    <Compile Include="Code\Folder.cs" />
-    <Compile Include="Code\Formatter.cs" />
-    <Compile Include="Code\Git.cs" />
-    <Compile Include="Code\Statistics.cs" />
+    <Compile Include="Configuration.cs" />
+    <Compile Include="DemoConfiguration.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="Formatting\ActiveUsersTable.cs" />
+    <Compile Include="Formatting\BuildStatisticsTable.cs" />
+    <Compile Include="Formatting\DailyBreakdownTable.cs" />
+    <Compile Include="Formatting\Percentage.cs" />
+    <Compile Include="Formatting\TableFormatter.cs" />
+    <Compile Include="Formatting\VitalsTable.cs" />
+    <Compile Include="IConfiguration.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="TextAlignMode.cs" />
   </ItemGroup>

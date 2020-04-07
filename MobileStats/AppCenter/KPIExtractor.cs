@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using MobileStats.Formatting;
 
 namespace MobileStats.AppCenter
 {
     class KPIExtractor
     {
-        public (double CrashFreePercentage, int UsersConsidered)
-            CrashfreeUsersOverLastFiveBuildsYesterday(List<AppVersionStatistics> statistics)
+        public Percentage CrashfreeUsersOverLastFiveBuildsYesterday(List<AppVersionStatistics> statistics)
         {
             var relevantVersions = lastFiveVersions(statistics);
 
@@ -16,11 +15,10 @@ namespace MobileStats.AppCenter
             var weightedCrashfreeUsersSum = relevantVersions
                 .Sum(s => s.MostRecentCrashfreePercentage * s.MostRecentDailyUsers);
 
-            return (weightedCrashfreeUsersSum / totalUsers, totalUsers);
+            return Percentage.FromFraction(weightedCrashfreeUsersSum / totalUsers, totalUsers);
         }
 
-        public (double CrashFreePercentage, int UsersConsidered)
-            CrashfreeUsersOverLastFiveBuildsLastWeek(List<AppVersionStatistics> statistics)
+        public Percentage CrashfreeUsersOverLastFiveBuildsLastWeek(List<AppVersionStatistics> statistics)
         {
             var relevantVersions = lastFiveVersions(statistics);
 
@@ -40,7 +38,7 @@ namespace MobileStats.AppCenter
                     return aggregate;
                 });
 
-            return (weightedCrashfreeUsersSum / totalUsers, totalUsers);
+            return Percentage.FromFraction(weightedCrashfreeUsersSum / totalUsers, totalUsers);
         }
 
         private static List<AppVersionStatistics> lastFiveVersions(List<AppVersionStatistics> statistics)

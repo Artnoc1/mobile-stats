@@ -18,16 +18,18 @@ namespace MobileStats.Bitrise
         private readonly string[] appIds;
         private readonly DateTimeOffset cutoffDate;
 
-        public Statistics(string apiToken, params string[] appIds)
+        public Statistics(IConfiguration config)
         {
-            this.apiToken = apiToken;
-            this.appIds = appIds;
+            apiToken = config.BitriseApiToken;
+            appIds = config.BitriseAppSlugs.Split(",; ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
             cutoffDate = now - TimeSpan.FromDays(daysToFetch);
         }
 
         public async Task<List<WorkflowBuildStatistics>> GetStatistics()
         {
+            Console.WriteLine("Fetching bitrise builds...");
+            
             Console.WriteLine("Bitrise apps: " + string.Join(", ", appIds));
 
             var apps = await fetchAllApps();
@@ -44,19 +46,23 @@ namespace MobileStats.Bitrise
             Console.WriteLine($"Fetched {totalBuildCount} builds in total");
             Console.WriteLine("Doing the math...");
 
-            var buildsByWorkflow = builds
-                .SelectMany(b => b)
-                .GroupBy(b => b.TriggeredWorkflow)
-                .Select(g => (Workflow: g.Key, Builds: g.ToList()))
+            
+            var buildsByWorkflow = apps
+                .Zip(builds, (a, b) => (App : a, Builds : b))
+                .SelectMany(t => t.Builds.Select(b => (t.App, Build: b)))
+                .GroupBy(b => (b.App, Workflow: b.Build.TriggeredWorkflow))
+                .Select(g => (g.Key.App, g.Key.Workflow, Builds: g.Select(b => b.Build).ToList()))
                 .ToList();
             
             if (buildsByWorkflow.Count > 1)
-                buildsByWorkflow.Add(("Total", builds.SelectMany(b => b).ToList()));
+                buildsByWorkflow.Add((null, "Total", builds.SelectMany(b => b).ToList()));
             
             var stats = buildsByWorkflow
                 .OrderByDescending(b => b.Builds.Count)
-                .Select(b => new WorkflowBuildStatistics(b.Workflow, daysToFetch, now, b.Builds))
+                .Select(b => new WorkflowBuildStatistics(b.App, b.Workflow, daysToFetch, now, b.Builds))
                 .ToList();
+            
+            Console.WriteLine("Finished fetching bitrise builds");
 
             return stats;
         }

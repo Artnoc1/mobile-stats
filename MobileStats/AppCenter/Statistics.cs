@@ -27,18 +27,18 @@ namespace MobileStats.AppCenter
             var appApi = api.App(owner, app);
 
             var midnight = new DateTimeOffset(DateTimeOffset.UtcNow.Date);
-            var sevenDaysAgo = midnight.AddDays(-7);
+            var thirtyTwoDaysAgo = midnight.AddDays(-32);
 
             Console.WriteLine($"Getting app center statistics for {app}...");
 
-            var versions = await appApi.Versions(sevenDaysAgo).ToTask();
+            var versions = await appApi.Versions(thirtyTwoDaysAgo).ToTask();
             
             var versionStats = await Task.WhenAll(
                 versions.Versions
-                    .Select(async v => await getStatsFor(appApi, sevenDaysAgo, v))
+                    .Select(async v => await getStatsFor(appApi, thirtyTwoDaysAgo, v))
                 );
 
-            var totals = await getStatsFor(appApi, sevenDaysAgo, null);
+            var totals = await getStatsFor(appApi, thirtyTwoDaysAgo, null);
 
             return new AppStatistics(app, totals, versionStats);
         }

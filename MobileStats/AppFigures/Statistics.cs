@@ -12,16 +12,22 @@ namespace MobileStats.AppFigures
         private readonly Api.AppFigures api;
         private readonly DateTime tomorrow;
 
-        public Statistics(string userName, string password, string clientKey, params string[] appids)
+        public Statistics(IConfiguration config)
         {
-            this.appids = appids;
-            api = new Api.AppFigures(userName, password, clientKey);
+            var user = config.AppFiguresUser;
+            var password = config.AppFiguresPassword;
+            var clientKey = config.AppFiguresClientKey;
+            
+            api = new Api.AppFigures(user, password, clientKey);
+            appids = config.AppFiguresProductIds.Split(",; ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
             tomorrow = DateTime.UtcNow.AddHours(12);
         }
 
         public async Task<List<AppStatistics>> FetchStats()
         {
+            Console.WriteLine("Fetching app figures statistics...");
+            
             var products = await api.Products();
             
             Console.WriteLine("Fetching numbers for apps: " + string.Join(", ", appids));
@@ -36,6 +42,8 @@ namespace MobileStats.AppFigures
                 
                 stats.Add(new AppStatistics(product, ratings));
             }
+
+            Console.WriteLine("Finished fetching app figures statistics");
 
             return stats;
         }

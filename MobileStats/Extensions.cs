@@ -7,6 +7,13 @@ namespace MobileStats
 {
     static class Extensions
     {
+        public static string logReport(this string report, string name)
+        {
+            Console.WriteLine($"Compiled {name}:\n{report}");
+
+            return report;
+        }
+        
         public static TimeSpan Average<T>(this IEnumerable<T> source, Func<T, TimeSpan> selector)
             => source.Select(selector).Average();
 
