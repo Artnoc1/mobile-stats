@@ -2,13 +2,13 @@
 {
     class AppCenter
     {
-        private readonly string authToken;
+        private readonly BaseApi api;
 
         public AppCenter(string apiToken)
         {
-            authToken = apiToken;
+            api = new BaseApi(apiToken);
         }
 
-        public App App(string owner, string appName) => new App(authToken, owner, appName);
+        public App App(string owner, string appName) => new App(api, owner, appName);
     }
 }

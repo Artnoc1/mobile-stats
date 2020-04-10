@@ -9,7 +9,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace MobileStats.AppCenter.Api
 {
-    abstract class BaseApi
+    class BaseApi
     {
         private readonly string authToken;
 
@@ -18,7 +18,7 @@ namespace MobileStats.AppCenter.Api
             this.authToken = authToken;
         }
 
-        protected static JsonSerializerSettings SnakeCase { get; } =
+        public JsonSerializerSettings SnakeCase { get; } =
             new JsonSerializerSettings
             {
                 ContractResolver = new DefaultContractResolver
@@ -27,7 +27,7 @@ namespace MobileStats.AppCenter.Api
                 }
             };
         
-        protected static JsonSerializerSettings CamelCase { get; } =
+        public JsonSerializerSettings CamelCase { get; } =
             new JsonSerializerSettings
             {
                 ContractResolver = new DefaultContractResolver
@@ -36,25 +36,26 @@ namespace MobileStats.AppCenter.Api
                 }
             };
 
-        private string url(string path)
-            => $"https://api.appcenter.ms/v0.1/{path}";
 
-        protected string url(string path, params (string name, string value)[] parameters)
+        public string Url(string path, params (string name, string value)[] parameters)
             => parameters == null || parameters.Length == 0
                 ? url(path)
                 : url(path) + "?" + string.Join("&", parameters
                       .Where(p => p.value != null).Select(p => $"{p.name}={HttpUtility.UrlEncode(p.value)}")
                   );
+        
+        private string url(string path)
+            => $"https://api.appcenter.ms/v0.1/{path}";
 
-        protected IObservable<T> RequestAndDeserialize<T>(string url, JsonSerializerSettings serializerSettings = null)
+        public IObservable<T> RequestAndDeserialize<T>(string url, JsonSerializerSettings serializerSettings = null)
             => Request(url)
                 .SelectMany(r => r.Content.ReadAsStringAsync().ToObservable())
                 .Select(json => Deserialize<T>(json, serializerSettings));
 
-        protected T Deserialize<T>(string json, JsonSerializerSettings serializerSettings = null)
+        private T Deserialize<T>(string json, JsonSerializerSettings serializerSettings = null)
             => JsonConvert.DeserializeObject<T>(json, serializerSettings ?? SnakeCase);
 
-        protected IObservable<HttpResponseMessage> Request(string url)
+        private IObservable<HttpResponseMessage> Request(string url)
             => httpClient().GetAsync(url).ToObservable().Select(
                 response => response.IsSuccessStatusCode
                     ? response

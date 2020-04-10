@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using MobileStats.Bitrise;
 using MobileStats.Bitrise.Models;
 
-namespace MobileStats.Bitrise
+namespace MobileStats.Formatting
 {
     class BuildGraphPainter
     {
@@ -31,7 +31,7 @@ namespace MobileStats.Bitrise
             new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase)
             {
                 {"android", Color.ForestGreen},
-                {"ios", Color.SkyBlue},
+                {"ios", Color.RoyalBlue},
                 {"mobileapp", Color.Orange},
             };
         
@@ -98,7 +98,7 @@ namespace MobileStats.Bitrise
             return concurrencies;
         }
 
-        private Bitmap drawGraph(List<List<(App, Build)>> concurrencies,
+        private Bitmap drawGraph(List<List<(App App, Build Build)>> concurrencies,
             DateTimeOffset startTime, DateTimeOffset endTime)
         {
             var graphDuration = endTime - startTime;
@@ -147,6 +147,40 @@ namespace MobileStats.Bitrise
                     graphics.DrawLine(concurrencyLinePen, 0, y, imageWidth, y);
                     var textY = y - concurrencySpacing - buildBarHeight / 2;
                     graphics.DrawString(concurrency.ToString(), font, fontBrush, 0, textY);
+                }
+                
+                // load background
+                var allBuilds = concurrencies.SelectMany(x => x)
+                    .Select(b => (b.App, Start: b.Build.StartedOnWorkerAt.Value, End: b.Build.FinishedAt.Value));
+                var averageDuration = allBuilds.Average(b => b.End - b.Start);
+                var durationRadius = TimeSpan.FromMinutes(30);
+                var graphScalar = concurrencySpacing * 0.66 * durationRadius.TotalDays / averageDuration.TotalDays;
+                foreach (var x in Enumerable.Range(0, imageWidth))
+                {
+                    var time = startTime + TimeSpan.FromDays(x * graphDuration.TotalDays / imageWidth);
+                    var intervalStart = time - durationRadius;
+
+                    var overlap = allBuilds
+                        .Select(b =>
+                        (
+                            b.App,
+                            Overlap: Math.Min(1, (b.End - intervalStart).TotalDays / (durationRadius.TotalDays * 2))
+                                     - Math.Max(0, (b.Start - intervalStart).TotalDays / (durationRadius.TotalDays * 2))
+                        ))
+                        .Where(b => b.Overlap > 0)
+                        .GroupBy(b => buildColor(b.App, null))
+                        .Select(g => (Color: g.Key, Amount: g.Sum(b => b.Overlap)))
+                        .OrderBy(o => o.Color.GetHue());
+
+                    var y = graphHeight;
+                    foreach (var (color, amount) in overlap)
+                    {
+                        var height = (int)(amount * graphScalar);
+                        graphics.DrawRectangle(new Pen(Color.FromArgb(40, color)),
+                            x, y - height, 1, height
+                        );
+                        y -= height;
+                    }
                 }
 
                 // base line
@@ -197,7 +231,7 @@ namespace MobileStats.Bitrise
 
         private Color buildColor(App app, Build build)
         {
-            return workflowColors.TryGetValue(build.TriggeredWorkflow, out var color)
+            return workflowColors.TryGetValue(build?.TriggeredWorkflow ?? "", out var color)
                 || appColors.TryGetValue(app.Title ?? "", out color)
                     ? color : Color.DimGray;
         }

@@ -31,6 +31,11 @@ Active users
     ActiveUsersTable.Format(appCenterData)
         .logReport("active user table")
 }
+Key events (daily is vs. 7 days ago)
+{
+    KeyEventTable.Format(appCenterData)
+        .logReport("key events")
+}
 Yesterday's breakdowns
 {
     DailyBreakdownTable.Format(appCenterData)
@@ -47,7 +52,7 @@ Bitrise build report
 
             writeFile("statistics", outPath, outStats, path => File.WriteAllText(path, report));
 
-            var buildGraph = new Bitrise.BuildGraphPainter().Draw(bitriseData);
+            var buildGraph = new BuildGraphPainter().Draw(bitriseData);
             writeFile("build graph", outPath, outImage, path => buildGraph.Save(path, ImageFormat.Png));
         }
 

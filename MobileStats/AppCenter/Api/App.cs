@@ -5,42 +5,45 @@ using Newtonsoft.Json;
 
 namespace MobileStats.AppCenter.Api
 {
-    class App : BaseApi
+    class App
     {
         public delegate IObservable<T> StartEndVersionFilteredEndpoint<out T>(
             DateTimeOffset startTime, DateTimeOffset? endTime = null, string[] versions = null);
 
+        private readonly BaseApi api;
         private readonly string owner;
         private readonly string appName;
 
-        public App(string authToken, string owner, string appName)
-            : base(authToken)
+        public App(BaseApi api, string owner, string appName)
         {
+            this.api = api;
             this.owner = owner;
             this.appName = appName;
         }
+        
+        public Event Event(string eventName) => new Event(this, eventName);
 
         public IObservable<VersionCollection> Versions(DateTimeOffset startTime)
-            => RequestAndDeserialize<VersionCollection>(
-                appUrl("analytics/versions",
+            => api.RequestAndDeserialize<VersionCollection>(
+                AppUrl("analytics/versions",
                     ("start", formatDateTime(startTime))
                 ));
 
         public StartEndVersionFilteredEndpoint<ActiveDeviceCounts> ActiveDeviceCounts =>
-            startEndVersionFilteredEndpoint<ActiveDeviceCounts>("analytics/active_device_counts");
+            FilteredEndpoint<ActiveDeviceCounts>("analytics/active_device_counts");
 
         public StartEndVersionFilteredEndpoint<CrashfreeDevicePercentages> CrashfreeDevicePercentages =>
-            startEndVersionFilteredEndpoint<CrashfreeDevicePercentages>("errors/errorfreeDevicePercentages", CamelCase, ("errorType", "unhandlederror"));
+            FilteredEndpoint<CrashfreeDevicePercentages>("errors/errorfreeDevicePercentages", api.CamelCase, ("errorType", "unhandlederror"));
 
         public StartEndVersionFilteredEndpoint<CrashCounts> CrashCounts =>
-            startEndVersionFilteredEndpoint<CrashCounts>("errors/errorCountsPerDay", null, ("errorType", "unhandlederror"));
+            FilteredEndpoint<CrashCounts>("errors/errorCountsPerDay", null, ("errorType", "unhandlederror"));
 
-        private StartEndVersionFilteredEndpoint<T> startEndVersionFilteredEndpoint<T>(
+        public StartEndVersionFilteredEndpoint<T> FilteredEndpoint<T>(
             string path,
             JsonSerializerSettings serialiserSettings = null,
             params (string name, string value)[] parameters)
-            => (startTime, endTime, versions) => RequestAndDeserialize<T>(
-                appUrl(path,
+            => (startTime, endTime, versions) => api.RequestAndDeserialize<T>(
+                AppUrl(path,
                     new[] {
                         ("start", formatDateTime(startTime)),
                         ("end", formatDateTime(endTime)),
@@ -55,7 +58,7 @@ namespace MobileStats.AppCenter.Api
             => versions == null || versions.Length == 0
                 ? null : string.Join("|", versions);
 
-        private string appUrl(string path, params (string name, string value)[] parameters)
-            => url($"apps/{owner}/{appName}/{path}", parameters);
+        public string AppUrl(string path, params (string name, string value)[] parameters)
+            => api.Url($"apps/{owner}/{appName}/{path}", parameters);
     }
 }

@@ -84,6 +84,8 @@
     <Compile Include="AppCenter\Api\App.cs" />
     <Compile Include="AppCenter\Api\AppCenter.cs" />
     <Compile Include="AppCenter\Api\BaseApi.cs" />
+    <Compile Include="AppCenter\Api\Event.cs" />
+    <Compile Include="AppCenter\AppNames.cs" />
     <Compile Include="AppCenter\AppStatistics.cs" />
     <Compile Include="AppCenter\AppVersionStatistics.cs" />
     <Compile Include="AppCenter\KPIExtractor.cs" />
@@ -92,6 +94,7 @@
     <Compile Include="AppCenter\Models\CrashfreeDevicePercentages.cs" />
     <Compile Include="AppCenter\Models\DatedCount.cs" />
     <Compile Include="AppCenter\Models\DatedPercentage.cs" />
+    <Compile Include="AppCenter\Models\EventCount.cs" />
     <Compile Include="AppCenter\Models\VersionCount.cs" />
     <Compile Include="AppCenter\Models\Versions.cs" />
     <Compile Include="AppCenter\Statistics.cs" />
@@ -105,10 +108,8 @@
     <Compile Include="Bitrise\Api\Bitrise.cs" />
     <Compile Include="Bitrise\Api\App.cs" />
     <Compile Include="Bitrise\Api\BaseApi.cs" />
-    <Compile Include="Bitrise\AppNames.cs" />
     <Compile Include="Bitrise\WorkflowBuildStatistics.cs" />
     <Compile Include="Bitrise\BuildCollectionStatistics.cs" />
-    <Compile Include="Bitrise\BuildGraphPainter.cs" />
     <Compile Include="Bitrise\Models\App.cs" />
     <Compile Include="Bitrise\Models\Single.cs" />
     <Compile Include="Bitrise\Statistics.cs" />
@@ -120,8 +121,10 @@
     <Compile Include="DemoConfiguration.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Formatting\ActiveUsersTable.cs" />
+    <Compile Include="Formatting\BuildGraphPainter.cs" />
     <Compile Include="Formatting\BuildStatisticsTable.cs" />
     <Compile Include="Formatting\DailyBreakdownTable.cs" />
+    <Compile Include="Formatting\KeyEventTable.cs" />
     <Compile Include="Formatting\Percentage.cs" />
     <Compile Include="Formatting\TableFormatter.cs" />
     <Compile Include="Formatting\VitalsTable.cs" />

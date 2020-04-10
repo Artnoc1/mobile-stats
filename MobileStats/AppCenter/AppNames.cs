@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace MobileStats.Bitrise
+namespace MobileStats.AppCenter
 {
     static class AppNames
     {

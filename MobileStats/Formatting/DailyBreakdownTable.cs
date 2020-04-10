@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using MobileStats.AppCenter;
-using static MobileStats.Bitrise.AppNames;
+using static MobileStats.AppCenter.AppNames;
 
 namespace MobileStats.Formatting
 {
